@@ -1,0 +1,10 @@
+/case_study_1_present_day_validation/plots/*
+/case_study_1_present_day_validation/present_day_climate_topo_inputs/*
+/case_study_1_present_day_validation/present_day_validation_data/*
+/case_study_1_present_day_validation/TREED_present_day_output/*
+/case_study_2_PETM/PETM_climate_topo_inputs/*
+/case_study_2_PETM/plots/*
+/case_study_2_PETM/TREED_PETM_output/*
+/case_study_3_ecoevolutionary_lags/PETM_climate_topo_inputs/*
+/case_study_3_ecoevolutionary_lags/plots/*
+/case_study_3_ecoevolutionary_lags/TREED_*

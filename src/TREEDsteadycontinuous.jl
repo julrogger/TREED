@@ -1,0 +1,131 @@
+###########################################################
+########## TREEDsteadycontinuous function #################
+###########################################################
+
+# Author: Julian Rogger
+# Startdate: 04.2025
+# Log: 
+
+"""
+    TREEDsteadycontinuous(; tairvec::Vector{Raster}, precipvec::Vector{Raster}, cltvec::Vector{Raster}, rsdsvec::Vector{Raster}, topovec::Vector{Raster}, CO2vec::Vector{Float64}, res::Float64, FDsampling::Bool, outputdir::String)
+
+    Calculates a steady state vegetation distribution for a series of topographic and climatic inputs. 
+
+    Arguments: 
+    - tairvec: Vector of rasters of monthly average temperatures in K for each timestep 
+    - precipvec: Vector of rasters of monthly average precipitation in m/s for each timestep
+    - cltvec: Vector of rasters of monthly average cloud cover in fraction 0-1 for each timestep 
+    - rsdsvec: Vector of rasters of monthly average downwelling shortwave radiation in W m-2 for each timestep
+    - topovec: Vector of rasters of topography for each timestep
+    - CO2vec: Vector of atmospheric CO2 concentrations in ppm 
+    - res: Target resolution of the model in arcdegrees, will be applied in longitude and latitude
+    - FDsampling: If true, assess volume of functional space at each location. Computationally heavy.
+    - RIsampling: If true, assess richness potential based on functional diversity and landscape complexity. Computationally heavy. 
+    - RI_landscape_window: Size of the landscape window for calculating diversity indices. In km. Default to 300 km. 
+    - outputdir: path to store outputs
+
+    All Raster inputs need to match in resolution and orientation. Orientation of rasters [X = longitude, Y = latitude].
+"""
+function TREEDsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO2vec, res, FDsampling, RIsampling, RI_landscape_window=300, outputdir)
+
+    for timestep in eachindex(tairvec)
+
+        ############################################################
+        ### 1) Get climate/topo inputs  ############################
+        ############################################################
+        tair = tairvec[timestep]
+        precip = precipvec[timestep]
+        clt = cltvec[timestep]
+        rsds = rsdsvec[timestep]
+        topo = topovec[timestep]
+        CO2 = CO2vec[timestep]
+
+        climate = create_TREED_climate_input(tair, precip, clt, rsds, topo, CO2, res)
+
+        ############################################################
+        ### 2) Initialize traits  ##################################
+        ############################################################
+
+        traits_start = initialize_TREED_traits(climate)
+
+        ############################################################
+        ### 3) Run trait optimization  #############################
+        ############################################################
+
+        println(string("Starting optimization function for timestep ", timestep))
+
+        traits_optimized = run_TREED_optimization(traits_start, climate)
+
+        println("Done with optimization")
+
+        ############################################################
+        ### ASSUME TRAITS OPTIMIZED = TRAITS EVOLVED  ##############
+        ############################################################
+
+        ############################################################
+        ### 4) calculate fluxes with final traits distribution  ####
+        ############################################################
+
+        # Skipping ecological and evolutionary functionalities 
+        traits_end = traits_optimized
+        vegetation_output = run_TREED_final_distribution(traits_end, climate)
+
+        
+        if FDsampling == true || RIsampling == true 
+
+            ############################################################
+            ### 5) sample functional diversity   #######################
+            ############################################################
+    
+            println("Starting functional trait sampling")
+    
+            height_space = range(1, 40, length = 10)
+            C_leaf_space = range(50, 5000, length = 8)
+            a_ll_space = range(0.2, 5, length = 5)
+    
+            functional_diversity_record = run_TREED_functional_diversity_sampling(traits_end, climate, height_space, C_leaf_space, a_ll_space )
+    
+            println("Done with functional trait sampling")
+    
+            if RIsampling == true
+    
+                ############################################################
+                ### 6) Assess species richness potential   #################
+                ############################################################
+    
+                println("Starting richness estimation")
+    
+                richness_estimation = run_TREED_richness_assessment(functional_diversity_record, vegetation_output, climate, RI_landscape_window)
+    
+                println("Done with richness estimation")
+            end
+    
+        end
+
+
+        ############################################################
+        ### Save TREED output ######################################
+        ############################################################
+
+        if FDsampling == true 
+            functional_diversity = (functional_diversity = functional_diversity_record, )
+            vegetation_output = merge(vegetation_output, functional_diversity)
+        end
+    
+        if RIsampling == true 
+            vegetation_output = merge(vegetation_output, richness_estimation)
+        end
+
+        topography = (topography = climate.topo, )
+        vegetation_output = merge(vegetation_output, topography)
+        TREED_output = RasterStack(vegetation_output)
+
+        if !isdir(outputdir)
+            mkpath(outputdir)
+        end
+
+        write(string(outputdir,"/TREED_output_timestep_",timestep,".nc"), TREED_output, missingval=-Inf32, force=true)
+        println("Done with timestep ",timestep,", everything ok!")
+
+    end
+end
