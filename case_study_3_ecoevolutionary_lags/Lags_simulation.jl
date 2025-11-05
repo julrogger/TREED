@@ -524,7 +524,7 @@ xlabel="", ylabel="Total NPP (Pg C year@+-1@+)", par=(FONT_LABEL=7, FONT_ANNOT_P
 GMT.plot!(data_base_scenarios.time, data_base_scenarios.NPP1, pen=(4,:darkred), legend=(label="Slow evolution, fast dispersal", pos=:TL, box=:none,))
 GMT.plot!(data_base_scenarios.time, data_base_scenarios.NPP2, pen=(4,:darkblue), legend=(label="Fast evolution, slow dispersal", pos=:TL, box=:none,))
 GMT.plot!(data_base_scenarios.time, data_base_scenarios.NPP3, pen=(4,:black), legend=(label="Intermediate evolution and dispersal", pos=:TL, box=:none,))
-
+text!("a)",frame=:none,region=(0,10,0,10), proj=:linear, x=-0.75, y=10, noclip=true ,font=(10,"Helvetica",:black))
 
 data_nichebreadth = DataFrame(time = 1:20, NPP4 = NPP_exp4, NPP5 = NPP_exp5, NPP6 = NPP_exp6, NPP7 = NPP_exp7, NPP8 = NPP_exp8)
 data_nichebreadth = convert.(Float64, data_nichebreadth)
@@ -536,8 +536,8 @@ GMT.plot!(data_nichebreadth.time, data_nichebreadth.NPP5, pen=(4,"94/201/98"), l
 GMT.plot!(data_nichebreadth.time, data_nichebreadth.NPP6, pen=(4,"33/145/140"), legend=(label="nichebreadth k=0.04", pos=:BR, box=:none,))
 GMT.plot!(data_nichebreadth.time, data_nichebreadth.NPP7, pen=(4, "59/82/139"), legend=(label="nichebreadth k=0.06", pos=:BR, box=:none,))
 GMT.plot!(data_nichebreadth.time, data_nichebreadth.NPP8, pen=(4, "68/1/84"), legend=(label="nichebreadth k=0.08", pos=:BR, box=:none,))
-text!("@~a@~ = 0.01, dispersal = 600 km",frame=:none,region=(0,10,0,10), proj=:linear, x=2.5, y=0.5, noclip=true ,font=(9,"Helvetica",:black)) 
-
+text!("@~a@~ = 0.01, dispersal = 600 km",frame=:none,region=(0,10,0,10), proj=:linear, x=2.5, y=0.5, noclip=true ,font=(9,"Helvetica",:black))
+text!("b)",frame=:none,region=(0,10,0,10), proj=:linear, x=-0.5, y=10, noclip=true ,font=(10,"Helvetica",:black))
 
 data_dispersal = DataFrame(time = 1:20, NPP9 = NPP_exp9, NPP10 = NPP_exp10, NPP11 = NPP_exp11, NPP12 = NPP_exp12, NPP13 = NPP_exp13)
 data_dispersal = convert.(Float64, data_dispersal)
@@ -550,6 +550,7 @@ GMT.plot!(data_dispersal.time, data_dispersal.NPP11, pen=(4,"183/55/121"), legen
 GMT.plot!(data_dispersal.time, data_dispersal.NPP12, pen=(4, "81/18/124"), legend=(label="dispersal radius=600 km", pos=:RM, box=:none,))
 GMT.plot!(data_dispersal.time, data_dispersal.NPP13, pen=(4, "0/0/4"), legend=(label="dispersal radius=800 km", pos=:RM, box=:none,))
 text!("@~a@~ = 0.01, k = 0.02",frame=:none,region=(0,10,0,10), proj=:linear, x=1.5, y=9.5, noclip=true ,font=(9,"Helvetica",:black)) 
+text!("c)",frame=:none,region=(0,10,0,10), proj=:linear, x=-0.75, y=10, noclip=true ,font=(10,"Helvetica",:black))
 
 
 data_warming = DataFrame(time = 1:20, NPP14 = NPP_exp14, NPP15 = NPP_exp15, NPP16 = NPP_exp16, NPP17 = NPP_exp17)
@@ -561,6 +562,7 @@ GMT.plot!(data_warming.time, data_warming.NPP14, pen=(4,"254/230/206"), legend=(
 GMT.plot!(data_warming.time, data_warming.NPP15, pen=(4,"253/174/107"), legend=(label="Land warming ~ 4@~\\260@~C", pos=:BR, box=:none,))
 GMT.plot!(data_warming.time, data_warming.NPP16, pen=(4,"230/85/13"), legend=(label="Land warming ~ 6@~\\260@~C", pos=:BR, box=:none,))
 GMT.plot!(data_warming.time, data_warming.NPP17, pen=(4, "166/54/3"), legend=(label="Land warming ~ 8@~\\260@~C", pos=:BR, box=:none,))
+text!("d)",frame=:none,region=(0,10,0,10), proj=:linear, x=-0.5, y=10, noclip=true ,font=(10,"Helvetica",:black))
 text!("@~a@~ = 0.01, k = 0.02, dispersal = 600 km",frame=:none,region=(0,10,0,10), proj=:linear, x=3, y=9.5, noclip=true ,font=(9,"Helvetica",:black), 
 dpi=700, name="./case_study_3_ecoevolutionary_lags/plots/evolutionary_lags_sensitivities.png")
 
@@ -582,47 +584,3 @@ dpi=700, name="./case_study_3_ecoevolutionary_lags/plots/evolutionary_lags_sensi
 
 
 
-
-
-
-
-
-# Combine with steady state plots from case study 2
-convert_raster_to_GMT_grid = function(raster)
-    increment = step(lookup(raster, X))
-    raster = replace_missing(raster, NaN)
-    data_xyz = DataFrame(raster)
-    matrix_xyz = Matrix(data_xyz)
-    GMT_grd = xyz2grd(matrix_xyz, limits=(minimum(matrix_xyz[:,1]), maximum(matrix_xyz[:,1]), minimum(matrix_xyz[:,2]), maximum(matrix_xyz[:,2])), inc=increment)
-    return(GMT_grd)
-end
-
-TREED_output_pre = RasterStack("./case_study_2_PETM/TREED_PETM_output/TREED_output_timestep_1.nc")
-TREED_output_peak = RasterStack("./case_study_2_PETM/TREED_PETM_output/TREED_output_timestep_2.nc")
-
-# Steady state vegetation height 
-H_cpt = makecpt(cmap=:bamako, range=(0, 50), inverse=true, overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="0/59/71", COLOR_FOREGROUND="255/229/172"))
-grdimage(convert_raster_to_GMT_grid(TREED_output_pre.H), projection=:Mollweide, theme="A2xy",
-    cmap=H_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=10, par=(FONT_ANNOT=7,))
-grdimage!(convert_raster_to_GMT_grid(TREED_output_peak.H), projection=:Mollweide, theme="A2xy",
-    cmap=H_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=10, par=(FONT_ANNOT=7,), xshift=10.25)
-colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="H (m)"),par=(FONT_ANNOT_PRIMARY=12,))
-text!("(a)",frame=:none,region=(0,10,0,10), xshift=-10.25, proj=:linear, x=0, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
-text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=6.75, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
-
-NPP_cpt = makecpt(cmap=:plasma, range=(0, 1300), overrule_bg=true, par=(COLOR_NAN=230, COLOR_BACKGROUND="15/7/136", COLOR_FOREGROUND="240/248/35"))
-grdimage!(convert_raster_to_GMT_grid(TREED_output_pre.NPP), projection=:Mollweide, theme="A2xy",
-    cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=10, par=(FONT_ANNOT=7,), yshift=-6.25)
-grdimage!(convert_raster_to_GMT_grid(TREED_output_peak.NPP), projection=:Mollweide, theme="A2xy",
-    cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=10, par=(FONT_ANNOT=7,), xshift=10.25)
-colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="NPP (g C m@+-2@+)"),par=(FONT_ANNOT_PRIMARY=12,))
-text!("(c)",frame=:none,region=(0,10,0,10), xshift=-10.25, proj=:linear, x=0, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
-text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=6.75, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
-
-GMT.basemap!(projection=:linear, region=(1, 20, 40, 115), figsize=(12, 7), theme=("A2xy"), 
-xlabel="Timestep", ylabel="Total NPP (Pg C year@+-1@+)", par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=7), yshift=-9, xshift=2) # 
-GMT.plot!(data.time, data.NPP1, pen=(4,:darkred), legend=(label="Slow evolution, fast dispersal", pos=:TL, box=:none,))
-GMT.plot!(data.time, data.NPP2, pen=(4,:darkblue), legend=(label="Fast evolution, slow dispersal", pos=:TL, box=:none,))
-GMT.plot!(data.time, data.NPP3, pen=(4,:black), legend=(label="Intermediate evolution and dispersal", pos=:TL, box=:none,))
-text!("(e)", x=-1, y=110, noclip=true, font=(10,"Helvetica",:black), 
-dpi=700, name="./case_study_3_ecoevolutionary_lags/plots/evolutionary_lags.png")
