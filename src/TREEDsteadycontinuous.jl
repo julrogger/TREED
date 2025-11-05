@@ -23,10 +23,16 @@
     - RIsampling: If true, assess richness potential based on functional diversity and landscape complexity. Computationally heavy. 
     - RI_landscape_window: Size of the landscape window for calculating diversity indices. In km. Default to 300 km. 
     - outputdir: path to store outputs
+    - kwargs...: Optional named tuple for changes in the TREED.pars parameter list.
 
     All Raster inputs need to match in resolution and orientation. Orientation of rasters [X = longitude, Y = latitude].
 """
-function TREEDsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO2vec, res, FDsampling, RIsampling, RI_landscape_window=300, outputdir)
+function TREEDsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO2vec, res, FDsampling, RIsampling, RI_landscape_window=300, outputdir, kwargs... )
+
+    ############################################################
+    ### 0) Include changes in paramter file  ###################
+    ############################################################
+    pars2 = merge(pars, kwargs)
 
     for timestep in eachindex(tairvec)
 
@@ -54,7 +60,7 @@ function TREEDsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO
 
         println(string("Starting optimization function for timestep ", timestep))
 
-        traits_optimized = run_TREED_optimization(traits_start, climate)
+        traits_optimized = run_TREED_optimization(traits_start, climate, pars2)
 
         println("Done with optimization")
 
@@ -68,7 +74,7 @@ function TREEDsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO
 
         # Skipping ecological and evolutionary functionalities 
         traits_end = traits_optimized
-        vegetation_output = run_TREED_final_distribution(traits_end, climate)
+        vegetation_output = run_TREED_final_distribution(traits_end, climate, pars2)
 
         
         if FDsampling == true || RIsampling == true 
@@ -83,7 +89,7 @@ function TREEDsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO
             C_leaf_space = range(50, 5000, length = 8)
             a_ll_space = range(0.2, 5, length = 5)
     
-            functional_diversity_record = run_TREED_functional_diversity_sampling(traits_end, climate, height_space, C_leaf_space, a_ll_space )
+            functional_diversity_record = run_TREED_functional_diversity_sampling(traits_end, climate, height_space, C_leaf_space, a_ll_space, pars2)
     
             println("Done with functional trait sampling")
     

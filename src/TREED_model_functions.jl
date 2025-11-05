@@ -158,13 +158,14 @@ initialize_TREED_traits = function(climate)
 end
 
 # Run the optimization loop 
-run_TREED_optimization = function(traits_start, climate)
+run_TREED_optimization = function(traits_start, climate, pars2)
 
     # Initialize object to write optimization results 
     traits_optimized = deepcopy(traits_start)
 
     # Run loop on multiple threads 
-    Threads.@threads for i = 1:length(lookup(traits_start.H, X))
+    #     
+ Threads.@threads for i = 1:length(lookup(traits_start.H, X))
         for j = 1:length(lookup(traits_start.H, Y))
             if climate.habitable[i, j] == 1
 
@@ -181,7 +182,7 @@ run_TREED_optimization = function(traits_start, climate)
                 )
 
                 # Run optimization to get maximimising H, C_leaf and a_ll
-                optimized_traits = trait_optimizer(env = env, pars = pars, trait_optimization_function = trait_optimization_function, iters = 20)
+                optimized_traits = trait_optimizer(env = env, par = pars2, trait_optimization_function = trait_optimization_function, iters = 20)
 
                 # Save optimization results 
                 traits_optimized.H[i, j] = optimized_traits.H_optimized
@@ -204,7 +205,7 @@ end
 
 
 # Run the evolution loop
-run_TREED_evolution = function(traits_start, traits_optimized, climate, evorate)
+run_TREED_evolution = function(traits_start, traits_optimized, climate, evorate, pars2)
 
     # Initialize object to write optimization results 
     traits_evolved = deepcopy(traits_start)
@@ -248,7 +249,7 @@ run_TREED_evolution = function(traits_start, traits_optimized, climate, evorate)
                 )
 
                 # Run evolution
-                new_traits = trait_evolution(optimized_traits=optimized_traits, env=env, tr=tr, pars=pars, evorate=evorate)
+                new_traits = trait_evolution(optimized_traits=optimized_traits, env=env, tr=tr, par=pars2, evorate=evorate)
 
                 # Write new traits to output array 
                 traits_evolved.H[i, j] = new_traits.H
@@ -272,7 +273,7 @@ end
 
 
 # Run the dispersal and competition loop
-run_TREED_ecology = function(traits_start, traits_evolved, traits_optimized, climate, dispersal)
+run_TREED_ecology = function(traits_start, traits_evolved, traits_optimized, climate, dispersal, pars2)
 
     # Initialize object to write optimization results 
     traits_end = deepcopy(traits_evolved)
@@ -423,12 +424,12 @@ run_TREED_ecology = function(traits_start, traits_evolved, traits_optimized, cli
                       Pave_optim = traits_end.Pave_optim[i,j]
                       )
               
-                      tr_int = plant_allometry(tr = tr_int, pars = pars)
-                      GPP_out_int = GPP_function_for_optimization(env = env, tr = tr_int, pars = pars)
-                      R_maintenance_int = R_maintenance_function( env = env, tr  = tr_int, pars = pars, GPP_out = GPP_out_int)
-                      C_turnover_total_int = C_turnover_function( env = env, tr = tr_int, pars = pars)
-                      NPP_int = calc_NPP(GPP_out = GPP_out_int, R_maintenance = R_maintenance_int, pars = pars)
-                      Net_C_gain_int = calc_net_C_gain(NPP = NPP_int, C_turnover_total = C_turnover_total_int)
+                      tr_int = plant_allometry(tr = tr_int, par = pars2)
+                      GPP_out_int = GPP_function_for_optimization(env = env, tr = tr_int, par = pars2)
+                      R_maintenance_int = R_maintenance_function( env = env, tr  = tr_int, par = pars2, GPP_out = GPP_out_int)
+                      C_turnover_total_int = C_turnover_function( env = env, tr = tr_int, par = pars2)
+                      NPP_int = calc_NPP(GPP_out = GPP_out_int, R_maintenance = R_maintenance_int, par = pars2)
+                      Net_C_gain_int = calc_net_C_gain(NPP = NPP_int, C_turnover_total = C_turnover_total_int, par=pars2)
     
                       if Net_C_gain_int <= -80
                         Net_C_gain_int = -1
@@ -474,7 +475,7 @@ end
 
 
 # Calculate final allometry and fluxes from resulting trait distribution 
-run_TREED_final_distribution = function(traits_end, climate)
+run_TREED_final_distribution = function(traits_end, climate, pars2)
 
     # Initialize output collectors
     output_raster = deepcopy(climate.habitable)
@@ -532,13 +533,13 @@ run_TREED_final_distribution = function(traits_end, climate)
                 precip_annual = mean(parent(climate.precip[i, j, :]))
                 )
 
-                tr_complete = plant_allometry(tr = tr, pars = pars)
-                #GPP_output = GPP_function(env = env, tr = tr_complete, pars = pars)
-                GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, pars = pars) # For now I use the same procedure for lambda as in optimization - is more consistent! 
-                R_maintenance_output = R_maintenance_function(env = env, tr = tr_complete, pars = pars, GPP_out = GPP_output)
-                NPP_output = calc_NPP(GPP_out = GPP_output, R_maintenance = R_maintenance_output, pars = pars)
-                C_turnover_total_output = C_turnover_function(env = env, tr = tr_complete, pars = pars)
-                Net_C_gain_output = calc_net_C_gain(NPP = NPP_output, C_turnover_total = C_turnover_total_output)
+                tr_complete = plant_allometry(tr = tr, par = pars2)
+                #GPP_output = GPP_function(env = env, tr = tr_complete, par = pars2)
+                GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, par = pars2) # For now I use the same procedure for lambda as in optimization - is more consistent! 
+                R_maintenance_output = R_maintenance_function(env = env, tr = tr_complete, par = pars2, GPP_out = GPP_output)
+                NPP_output = calc_NPP(GPP_out = GPP_output, R_maintenance = R_maintenance_output, par = pars2)
+                C_turnover_total_output = C_turnover_function(env = env, tr = tr_complete, par = pars2)
+                Net_C_gain_output = calc_net_C_gain(NPP = NPP_output, C_turnover_total = C_turnover_total_output, par=pars2)
 
 
 
@@ -611,7 +612,7 @@ run_TREED_final_distribution = function(traits_end, climate)
 end
 
 # Funcional diversity sampling
-run_TREED_functional_diversity_sampling = function(traits_end, climate, H_range, C_leaf_range, a_ll_range)
+run_TREED_functional_diversity_sampling = function(traits_end, climate, H_range, C_leaf_range, a_ll_range, pars2)
 
     # Initialize output collector 
     functional_diversity_record = deepcopy(climate.habitable)
@@ -653,12 +654,12 @@ run_TREED_functional_diversity_sampling = function(traits_end, climate, H_range,
                     Tmin_optim = traits_end.Tmin_optim[i, j], 
                     Pave_optim = traits_end.Pave_optim[i, j])
 
-                    tr_complete = plant_allometry(tr = tr, pars = pars)
-                    GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, pars = pars) # For now I use the same procedure for lambda as in optimization - is more consistent! 
-                    R_maintenance_output = R_maintenance_function(env = env, tr = tr_complete, pars = pars, GPP_out = GPP_output)
-                    NPP_output = calc_NPP(GPP_out = GPP_output, R_maintenance = R_maintenance_output, pars = pars)
-                    C_turnover_total_output = C_turnover_function(env = env, tr = tr_complete, pars = pars)
-                    Net_C_gain_output = calc_net_C_gain(NPP = NPP_output, C_turnover_total = C_turnover_total_output)
+                    tr_complete = plant_allometry(tr = tr, par = pars2)
+                    GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, par = pars2) # For now I use the same procedure for lambda as in optimization - is more consistent! 
+                    R_maintenance_output = R_maintenance_function(env = env, tr = tr_complete, par = pars2, GPP_out = GPP_output)
+                    NPP_output = calc_NPP(GPP_out = GPP_output, R_maintenance = R_maintenance_output, par = pars2)
+                    C_turnover_total_output = C_turnover_function(env = env, tr = tr_complete, par = pars2)
+                    Net_C_gain_output = calc_net_C_gain(NPP = NPP_output, C_turnover_total = C_turnover_total_output, par=pars2)
 
                     out = Net_C_gain_output
                     if NPP_output < 0 || Net_C_gain_output < 0

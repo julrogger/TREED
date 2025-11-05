@@ -7,16 +7,16 @@
 
 
 ### Plant allometry 
-plant_allometry = function(; tr, pars)
+plant_allometry = function(; tr, par)
 
-    D = (tr.H / pars.k_allom2)^(1 / pars.k_allom3)
+    D = (tr.H / par.k_allom2)^(1 / par.k_allom3)
 
-    CA = pars.k_allom1 * (D^pars.k_rp)
-    CA = min(max(CA, pars.CA_min),pars.CA_max)
+    CA = par.k_allom1 * (D^par.k_rp)
+    CA = min(max(CA, par.CA_min),par.CA_max)
 
     SLA =  (2e-4) * (1/0.4763) * 10^(2.25 - 0.5*log10(tr.a_ll * 12)) # Intermediate of new version Schaphoff.
 
-    SA = (tr.C_leaf * SLA)/pars.k_la_sa
+    SA = (tr.C_leaf * SLA)/par.k_la_sa
     
     LAI = (tr.C_leaf * SLA)/CA
     
@@ -32,9 +32,9 @@ plant_allometry = function(; tr, pars)
     
     FPC = (1-exp(-light_extinction_coefficient*LAI)) # P * CA # Foliage projective cover: area of ground covered by foliage (aka. how much light is intercepted) (Lambert-Beer law); *P*CA not applied as I don't consider population densities as [individuals ha-1]
     
-    C_sapwood = SA * tr.H * pars.WD_sapwood # I calculate C_sapwood even if SA > totalD (which is not realistic), but in that case it accounts for total supporting structure C
+    C_sapwood = SA * tr.H * par.WD_sapwood # I calculate C_sapwood even if SA > totalD (which is not realistic), but in that case it accounts for total supporting structure C
 
-    C_stem_total = pars.k_density_intercept * ((CA * tr.H)^pars.k_power) * 0.47 # g of C per individual
+    C_stem_total = par.k_density_intercept * ((CA * tr.H)^par.k_power) * 0.47 # g of C per individual
     
     if C_sapwood >= C_stem_total
         # C_sapwood = C_stem_total
@@ -75,7 +75,7 @@ plant_allometry = function(; tr, pars)
 end
 
 ### GPP and AET function
-GPP_function = function(; env, tr, pars)
+GPP_function = function(; env, tr, par)
   
   daytime_integrated_rsds = env.rsds_monthly # * (24/env.daylength) # [MJ m-2 daytime-1/day-1]
   PAR = daytime_integrated_rsds * 4.6 * 0.5 # Photosynthetically active radiation, Schlaphoff version 
@@ -94,15 +94,15 @@ GPP_function = function(; env, tr, pars)
     Tmin_diff = 0
   end
 
-  tair_mean_niche_change_stress =  exp( -pars.temp_niche_breadth_parameter * (Tmean_diff)^2 )
-  tair_max_niche_change_stress =  exp( -pars.temp_niche_breadth_parameter * (Tmax_diff)^2 )
-  tair_min_niche_change_stress =  exp( -pars.temp_niche_breadth_parameter * (Tmin_diff)^2 )
+  tair_mean_niche_change_stress =  exp( -par.temp_niche_breadth_parameter * (Tmean_diff)^2 )
+  tair_max_niche_change_stress =  exp( -par.temp_niche_breadth_parameter * (Tmax_diff)^2 )
+  tair_min_niche_change_stress =  exp( -par.temp_niche_breadth_parameter * (Tmin_diff)^2 )
   tair_niche_change_stress = min(tair_mean_niche_change_stress, tair_max_niche_change_stress, tair_min_niche_change_stress)
   
   # phenology_status = 1 # In current model, always considered fully grown plants 
   
   FPAR = tr.FPC .* tair_niche_change_stress # phenology_status # Fraction PAR absorved by vegetation  
-  APAR = FPAR .* PAR .* pars.alpha_leaf_to_stand # [mol E m-2 day-1] Effectively absorved photosynthetically active radiation APAR
+  APAR = FPAR .* PAR .* par.alpha_leaf_to_stand # [mol E m-2 day-1] Effectively absorved photosynthetically active radiation APAR
   
   ##### Continue translation here. 
   # If plant is seasonal, derive favorable growing season adjusted for leaf longevity 
@@ -123,7 +123,7 @@ GPP_function = function(; env, tr, pars)
   
   
   # Atmospheric CO2 partial pressure 
-  p_a = (env.CO2_ppm * pars.p_atm)/1e+6 # Partial pressure of atmospheric CO2 [Pa]
+  p_a = (env.CO2_ppm * par.p_atm)/1e+6 # Partial pressure of atmospheric CO2 [Pa]
   
   
   ############# Maximum potential photosynthesis only light and rubisco limited, no water limitation
@@ -134,42 +134,42 @@ GPP_function = function(; env, tr, pars)
   f_tair_limit_low = 1 ./ (1 .+ exp.( 0.25 .* (12 .- env.tair_monthly)))
   f_tair_limit_crit = 1 .- (1 ./ (1 .+ exp.(.-(env.tair_monthly .- 40.85))))
   f_tair_limit = f_tair_limit_low .* f_tair_limit_crit
-  f_tair_limit[env.tair_monthly .<= pars.temp_crit_photosynthesis] .= 0
+  f_tair_limit[env.tair_monthly .<= par.temp_crit_photosynthesis] .= 0
   
-  p_i_max = pars.lambdamc3 * p_a
+  p_i_max = par.lambdamc3 * p_a
   
   Tau = 2600   .*  0.57.^( (env.tair_monthly  .- 25 )  ./  10 )
   
-  Tau_star = (pars.pO2)  ./   (2   .*  Tau) # [Pa]
+  Tau_star = (par.pO2)  ./   (2   .*  Tau) # [Pa]
   
-  c1 = pars.alpha_c3   .*  f_tair_limit   .*  ( ( p_i_max  .-  Tau_star )  ./   ( p_i_max  .+  ( 2  .*  Tau_star) ) )
+  c1 = par.alpha_c3   .*  f_tair_limit   .*  ( ( p_i_max  .-  Tau_star )  ./   ( p_i_max  .+  ( 2  .*  Tau_star) ) )
   
   k_o = 30   .*  1000   .*  (1.2 .^ ((env.tair_monthly  .-  25)  ./   10)) # [Pa]
   
   k_c = 30   .*  (2.1 .^ ((env.tair_monthly .- 25) ./  10)) # [Pa]
   
-  c2 = (p_i_max  .-  Tau_star) ./  (p_i_max  .+  (k_c   .*  (1  .+  (pars.pO2 ./  k_o))))
+  c2 = (p_i_max  .-  Tau_star) ./  (p_i_max  .+  (k_c   .*  (1  .+  (par.pO2 ./  k_o))))
   
   # Calculate s
-  s = (24 ./  env.daylength)   .*  pars.b_c3
+  s = (24 ./  env.daylength)   .*  par.b_c3
   
   # Calculate sigma_c
-  sigma = sqrt.( 1 .- ((c2 .- s) ./  (c2 .- pars.theta  .* s)) )
+  sigma = sqrt.( 1 .- ((c2 .- s) ./  (c2 .- par.theta  .* s)) )
   
   # Calculate Vm (maximum rubisco capacity) [g C m .- 2 day .- 1]
-  V_m = (1 ./  pars.b_c3)  .* (c1 ./  c2)  .* ((2  .* pars.theta  .-  1)  .* s  .-  (2  .* pars.theta  .* s  .-  c2)  .* sigma)  .* (APAR)  .* pars.c_mass
+  V_m = (1 ./  par.b_c3)  .* (c1 ./  c2)  .* ((2  .* par.theta  .-  1)  .* s  .-  (2  .* par.theta  .* s  .-  c2)  .* sigma)  .* (APAR)  .* par.c_mass
   
   # Calculate light .- limited photosynthesis on hourly basis [g C m .- 2 h .- 1]
-  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  pars.c_mass
+  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  par.c_mass
   
   # Calculate Rubisco .- limited photosynthesis rate [g C m .- 2 h .- 1]
   Jc_hourly = c2   .*  V_m   .*  (1 ./  24)
   
   # Calculate daytime gross photosynthesis Agd [g C m .- 2 daytime .- 1]
-  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* pars.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  pars.theta)   .*  env.daylength
+  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* par.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  par.theta)   .*  env.daylength
   
   # Leaf respiration 
-  R_leaf = pars.b_c3   .*  V_m
+  R_leaf = par.b_c3   .*  V_m
   
   # Net daily photosynthesis (minus leaf respiration)
   And = Agd  .-  R_leaf
@@ -180,7 +180,7 @@ GPP_function = function(; env, tr, pars)
 
   ############# Water limitation
   # Consider water limitation  .- > actual lambda
-  lambda = repeat([pars.lambdamc3], 12) # initialize lambda for later adjustment with bisection
+  lambda = repeat([par.lambdamc3], 12) # initialize lambda for later adjustment with bisection
   
   # Check water balance and calculate maximum photosynthesis possible under water stress
   Emax = 5 # [mm day .- 1] maximum evapotranspiration rate
@@ -191,11 +191,11 @@ GPP_function = function(; env, tr, pars)
 
   # # Calculate potential canopy conductance with unlimited photosynthesis rate
   gmin = 0.3 #0.3 # minimum water loss in [mm s .- 1]
-  Adt_mol = Adt  ./   pars.c_mass # mol C m .- 2 day .- 1
+  Adt_mol = Adt  ./   par.c_mass # mol C m .- 2 day .- 1
   Adt_mol_s = Adt_mol  ./   (env.daylength   .*  60   .*  60) # mol C m .- 2 s .- 1
-  c_a = (p_a ./  pars.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
-  gc_pot_mol = ((1.6   .*  Adt_mol_s) ./  (c_a   .*  (1  .-  pars.lambdamc3))) # mol H2O m .- 2 s .- 1
-  gc_pot_mm = gmin  .+  (gc_pot_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   pars.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
+  c_a = (p_a ./  par.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
+  gc_pot_mol = ((1.6   .*  Adt_mol_s) ./  (c_a   .*  (1  .-  par.lambdamc3))) # mol H2O m .- 2 s .- 1
+  gc_pot_mm = gmin  .+  (gc_pot_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   par.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
 
   # # Slope of saturation vapour pressure curve [Pa K .- 1]
   sa = (2.502   .*  10 .^ 6)   .*  (exp.(17.269   .*  env.tair_monthly  ./   (237.3  .+  env.tair_monthly)) ./  (237.3  .+  env.tair_monthly) .^ 2)
@@ -227,19 +227,19 @@ GPP_function = function(; env, tr, pars)
           
         # Calculate Adt with photosynthesis module
         p_i = lambda   .*  p_a # [Pa]
-        c1 = pars.alpha_c3   .*  f_tair_limit[i]   .*  ( ( p_i  .-  Tau_star[i] )  ./   ( p_i  .+  ( 2  .* Tau_star[i]) ) )
-        c2 = (p_i  .-  Tau_star[i]) ./  (p_i  .+  (k_c[i]   .*  (1  .+  (pars.pO2 ./  k_o[i]))))
+        c1 = par.alpha_c3   .*  f_tair_limit[i]   .*  ( ( p_i  .-  Tau_star[i] )  ./   ( p_i  .+  ( 2  .* Tau_star[i]) ) )
+        c2 = (p_i  .-  Tau_star[i]) ./  (p_i  .+  (k_c[i]   .*  (1  .+  (par.pO2 ./  k_o[i]))))
           
         # Calculate light .- limited photosynthesis on hourly basis [g C m .- 2 h .- 1]
-        Je_hourly = c1   .*  (APAR[i] ./  env.daylength[i])   .*  pars.c_mass
+        Je_hourly = c1   .*  (APAR[i] ./  env.daylength[i])   .*  par.c_mass
           
         # Calculate Rubisco .- limited photosynthesis rate [g C m .- 2 h .- 1]
         Jc_hourly = c2   .*  V_m[i]   .*  (1 ./  24)
           
         # Calculate daytime gross photosynthesis Agd [g C m .- 2 daytime .- 1]
-        Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* pars.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  pars.theta)   .*  env.daylength[i]
+        Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* par.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  par.theta)   .*  env.daylength[i]
         # Leaf respiration 
-        R_leaf = pars.b_c3   .*  V_m[i]
+        R_leaf = par.b_c3   .*  V_m[i]
         # Net daily photosynthesis (minus leaf respiration)
         And = Agd  .-  R_leaf
         # Daily net daytime photosynthesis (gross photosynthesis  .-  daytime dark respiration)
@@ -253,8 +253,8 @@ GPP_function = function(; env, tr, pars)
 
         Adt_v2_mm_s = c_a   .*  (gc  .-  gmin)   .*  ((1  .-  lambda) ./  1.6) # in mm s .- 1 
         Adt_v2_m_s = Adt_v2_mm_s   .*  (1 ./  1000) # m s .- 1  .-  .- > m3 m .- 2 s .- 1
-        Adt_v2_mol_day = Adt_v2_m_s   .*  (pars.p_atm  ./   (8.314   .*  (env.tair_monthly[i]  .+  273.15)))   .*  (env.daylength[i]   .*  60   .*  60) # convert volume co2 gas to mol m .- 2 day .- 1
-        Adt_v2 = Adt_v2_mol_day   .*  pars.c_mass # convert to g C m .- 2 day .- 1
+        Adt_v2_mol_day = Adt_v2_m_s   .*  (par.p_atm  ./   (8.314   .*  (env.tair_monthly[i]  .+  273.15)))   .*  (env.daylength[i]   .*  60   .*  60) # convert volume co2 gas to mol m .- 2 day .- 1
+        Adt_v2 = Adt_v2_mol_day   .*  par.c_mass # convert to g C m .- 2 day .- 1
         Adt_v2 = max.(- 0.5, Adt_v2) # Ensure root in a negative number to avoid failure of bisection algorithm
           
         return(Adt_v1  .-  Adt_v2)
@@ -276,22 +276,22 @@ GPP_function = function(; env, tr, pars)
     
   # Recalculate Photosynthesis with updated ./  actual lambda considerin water limitation
   p_i = lambda   .*  p_a # [Pa]
-  c1 = pars.alpha_c3   .*  f_tair_limit   .*  ( ( p_i  .-  Tau_star )  ./   ( p_i  .+  ( 2  .* Tau_star) ) )
-  c2 = (p_i  .-  Tau_star) ./  (p_i  .+  (k_c   .*  (1  .+  (pars.pO2 ./  k_o))))
+  c1 = par.alpha_c3   .*  f_tair_limit   .*  ( ( p_i  .-  Tau_star )  ./   ( p_i  .+  ( 2  .* Tau_star) ) )
+  c2 = (p_i  .-  Tau_star) ./  (p_i  .+  (k_c   .*  (1  .+  (par.pO2 ./  k_o))))
   
   # Calculate light .- limited photosynthesis on hourly basis [g C m .- 2 h .- 1]
-  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  pars.c_mass
+  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  par.c_mass
   
   # Calculate Rubisco .- limited photosynthesis rate [g C m .- 2 h .- 1]
   Jc_hourly = c2   .*  V_m   .*  (1 ./  24)
   
   # Calculate daytime gross photosynthesis Agd [g C m .- 2 daytime .- 1]
-  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* pars.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  pars.theta)   .*  env.daylength
+  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* par.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  par.theta)   .*  env.daylength
   
   
   ################ Calculate AET  .-  at the moment just zero during non .- growing season
   # Leaf respiration
-  R_leaf = pars.b_c3   .*  V_m
+  R_leaf = par.b_c3   .*  V_m
   # Net daily photosynthesis (minus leaf respiration)
   And = Agd  .-  R_leaf
   # Daily net daytime photosynthesis (gross photosynthesis  .-  daytime dark respiration)
@@ -299,11 +299,11 @@ GPP_function = function(; env, tr, pars)
 
   # Calculate canopy conductance
   gmin = 0.3 #0.3 # minimum water loss in [mm s .- 1]
-  Adt_mol = Adt  ./   pars.c_mass # mol C m .- 2 day .- 1
+  Adt_mol = Adt  ./   par.c_mass # mol C m .- 2 day .- 1
   Adt_mol_s = Adt_mol  ./   (env.daylength   .*  60   .*  60) # mol C m .- 2 s .- 1
-  c_a = (p_a ./  pars.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
+  c_a = (p_a ./  par.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
   gc_act_mol = ((1.6   .*  Adt_mol_s) ./  (c_a   .*  (1  .-  lambda))) # mol H2O m .- 2 s .- 1
-  gc_act_mm = gmin  .+  (gc_act_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   pars.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
+  gc_act_mm = gmin  .+  (gc_act_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   par.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
   
   # # Slope of saturation vapour pressure curve [Pa K .- 1]
   sa = (2.502   .*  10 .^ 6)   .*  (exp.(17.269   .*  env.tair_monthly  ./   (237.3  .+  env.tair_monthly)) ./  (237.3  .+  env.tair_monthly) .^ 2)
@@ -322,9 +322,9 @@ GPP_function = function(; env, tr, pars)
 
   # Integration
   Agd = max.(0, Agd) # Take care of rare cases with negative daily photosynthesis (e.g., lambda == 0)
-  Agd = Agd    .*  pars.month_days 
+  Agd = Agd    .*  par.month_days 
   GPP = sum(Agd)
-  AET = AET_monthly   .*  pars.month_days
+  AET = AET_monthly   .*  par.month_days
   AET_sum = sum(AET)
   V_m = V_m 
   
@@ -338,8 +338,8 @@ GPP_function = function(; env, tr, pars)
   
   #######
   # ### Test Results with different approach with first deriving And then adding nighttime respiration
-  # And = APAR[favorable_months]   .*  (c1 ./  c2)   .*  (c2  .-  (2  .* pars.theta  .- 1)  .* s  .-  2  .* (c2 .- pars.theta  .* s)  .* sigma)   .*  pars.c_mass
-  # Agd = And  .+  (pars.b_c3   .*  V_m)
+  # And = APAR[favorable_months]   .*  (c1 ./  c2)   .*  (c2  .-  (2  .* par.theta  .- 1)  .* s  .-  2  .* (c2 .- par.theta  .* s)  .* sigma)   .*  par.c_mass
+  # Agd = And  .+  (par.b_c3   .*  V_m)
   ########
   
   
@@ -354,7 +354,7 @@ GPP_function = function(; env, tr, pars)
 end
 
 ### GPP function for optimizaiton - avoid bisection for lambda & AET calculation
-GPP_function_for_optimization = function(; env, tr, pars)
+GPP_function_for_optimization = function(; env, tr, par)
   
   daytime_integrated_rsds = env.rsds_monthly # * (24/env.daylength) # [MJ m-2 daytime-1/day-1]
   PAR = daytime_integrated_rsds * 4.6 * 0.5 # Photosynthetically active radiation, Schlaphoff version 
@@ -373,15 +373,15 @@ GPP_function_for_optimization = function(; env, tr, pars)
     Tmin_diff = 0
   end
 
-  tair_mean_niche_change_stress =  exp( -pars.temp_niche_breadth_parameter * (Tmean_diff)^2 )
-  tair_max_niche_change_stress =  exp( -pars.temp_niche_breadth_parameter * (Tmax_diff)^2 )
-  tair_min_niche_change_stress =  exp( -pars.temp_niche_breadth_parameter * (Tmin_diff)^2 )
+  tair_mean_niche_change_stress =  exp( -par.temp_niche_breadth_parameter * (Tmean_diff)^2 )
+  tair_max_niche_change_stress =  exp( -par.temp_niche_breadth_parameter * (Tmax_diff)^2 )
+  tair_min_niche_change_stress =  exp( -par.temp_niche_breadth_parameter * (Tmin_diff)^2 )
   tair_niche_change_stress = min(tair_mean_niche_change_stress, tair_max_niche_change_stress, tair_min_niche_change_stress)
   
   # phenology_status = 1 # In current model, always considered fully grown plants 
   
   FPAR = tr.FPC .* tair_niche_change_stress # phenology_status # Fraction PAR absorved by vegetation  
-  APAR = FPAR .* PAR .* pars.alpha_leaf_to_stand # [mol E m-2 day-1] Effectively absorved photosynthetically active radiation APAR
+  APAR = FPAR .* PAR .* par.alpha_leaf_to_stand # [mol E m-2 day-1] Effectively absorved photosynthetically active radiation APAR
   
   ##### Continue translation here. 
   # If plant is seasonal, derive favorable growing season adjusted for leaf longevity 
@@ -402,7 +402,7 @@ GPP_function_for_optimization = function(; env, tr, pars)
   
   
   # Atmospheric CO2 partial pressure 
-  p_a = (env.CO2_ppm * pars.p_atm)/1e+6 # Partial pressure of atmospheric CO2 [Pa]
+  p_a = (env.CO2_ppm * par.p_atm)/1e+6 # Partial pressure of atmospheric CO2 [Pa]
   
   
   ############# Maximum potential photosynthesis only light and rubisco limited, no water limitation
@@ -413,44 +413,44 @@ GPP_function_for_optimization = function(; env, tr, pars)
   f_tair_limit_low = 1 ./ (1 .+ exp.( 0.25 .* (12 .- env.tair_monthly)))
   f_tair_limit_crit = 1 .- (1 ./ (1 .+ exp.(.-(env.tair_monthly .- 40.85))))
   f_tair_limit = f_tair_limit_low .* f_tair_limit_crit
-  f_tair_limit[env.tair_monthly .<= pars.temp_crit_photosynthesis] .= 0
+  f_tair_limit[env.tair_monthly .<= par.temp_crit_photosynthesis] .= 0
   
-  p_i_max = pars.lambdamc3 * p_a
+  p_i_max = par.lambdamc3 * p_a
   
   Tau = 2600   .*  0.57.^( (env.tair_monthly  .- 25 )  ./  10 )
   
-  Tau_star = (pars.pO2)  ./   (2   .*  Tau) # [Pa]
+  Tau_star = (par.pO2)  ./   (2   .*  Tau) # [Pa]
   
-  c1 = pars.alpha_c3   .*  f_tair_limit   .*  ( ( p_i_max  .-  Tau_star )  ./   ( p_i_max  .+  ( 2  .*  Tau_star) ) )
+  c1 = par.alpha_c3   .*  f_tair_limit   .*  ( ( p_i_max  .-  Tau_star )  ./   ( p_i_max  .+  ( 2  .*  Tau_star) ) )
   
   k_o = 30   .*  1000   .*  (1.2 .^ ((env.tair_monthly  .-  25)  ./   10)) # [Pa]
   
   k_c = 30   .*  (2.1 .^ ((env.tair_monthly .- 25) ./  10)) # [Pa]
   
-  c2 = (p_i_max  .-  Tau_star) ./  (p_i_max  .+  (k_c   .*  (1  .+  (pars.pO2 ./  k_o))))
+  c2 = (p_i_max  .-  Tau_star) ./  (p_i_max  .+  (k_c   .*  (1  .+  (par.pO2 ./  k_o))))
   
   # Calculate s
-  s = (24 ./  env.daylength)   .*  pars.b_c3
+  s = (24 ./  env.daylength)   .*  par.b_c3
   
   # Calculate sigma_c
-  sigma_argument = 1 .- ((c2 .- s) ./  (c2 .- pars.theta  .* s))
+  sigma_argument = 1 .- ((c2 .- s) ./  (c2 .- par.theta  .* s))
   sigma_argument[sigma_argument .< 0] .= 0 
   sigma = sqrt.( sigma_argument )
   
   # Calculate Vm (maximum rubisco capacity) [g C m .- 2 day .- 1]
-  V_m = (1 ./  pars.b_c3)  .* (c1 ./  c2)  .* ((2  .* pars.theta  .-  1)  .* s  .-  (2  .* pars.theta  .* s  .-  c2)  .* sigma)  .* (APAR)  .* pars.c_mass
+  V_m = (1 ./  par.b_c3)  .* (c1 ./  c2)  .* ((2  .* par.theta  .-  1)  .* s  .-  (2  .* par.theta  .* s  .-  c2)  .* sigma)  .* (APAR)  .* par.c_mass
   
   # Calculate light .- limited photosynthesis on hourly basis [g C m .- 2 h .- 1]
-  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  pars.c_mass
+  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  par.c_mass
   
   # Calculate Rubisco .- limited photosynthesis rate [g C m .- 2 h .- 1]
   Jc_hourly = c2   .*  V_m   .*  (1 ./  24)
   
   # Calculate daytime gross photosynthesis Agd [g C m .- 2 daytime .- 1]
-  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* pars.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  pars.theta)   .*  env.daylength
+  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* par.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  par.theta)   .*  env.daylength
   
   # Leaf respiration 
-  R_leaf = pars.b_c3   .*  V_m
+  R_leaf = par.b_c3   .*  V_m
   
   # Net daily photosynthesis (minus leaf respiration)
   And = Agd  .-  R_leaf
@@ -461,7 +461,7 @@ GPP_function_for_optimization = function(; env, tr, pars)
 
   ############# Water limitation
   # Consider water limitation  .- > actual lambda
-  lambda = repeat([pars.lambdamc3], 12) # initialize lambda for later adjustment with bisection
+  lambda = repeat([par.lambdamc3], 12) # initialize lambda for later adjustment with bisection
   
   # Check water balance and calculate maximum photosynthesis possible under water stress
   Emax = 5 # [mm day .- 1] maximum evapotranspiration rate
@@ -472,11 +472,11 @@ GPP_function_for_optimization = function(; env, tr, pars)
 
   # # Calculate potential canopy conductance with unlimited photosynthesis rate
   gmin = 0.5 #0.3 # minimum water loss in [mm s .- 1]
-  Adt_mol = Adt  ./   pars.c_mass # mol C m .- 2 day .- 1
+  Adt_mol = Adt  ./   par.c_mass # mol C m .- 2 day .- 1
   Adt_mol_s = Adt_mol  ./   (env.daylength   .*  60   .*  60) # mol C m .- 2 s .- 1
-  c_a = (p_a ./  pars.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
-  gc_pot_mol = ((1.6   .*  Adt_mol_s) ./  (c_a   .*  (1  .-  pars.lambdamc3))) # mol H2O m .- 2 s .- 1
-  gc_pot_mm = gmin  .+  (gc_pot_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   pars.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
+  c_a = (p_a ./  par.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
+  gc_pot_mol = ((1.6   .*  Adt_mol_s) ./  (c_a   .*  (1  .-  par.lambdamc3))) # mol H2O m .- 2 s .- 1
+  gc_pot_mm = gmin  .+  (gc_pot_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   par.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
 
   # # Slope of saturation vapour pressure curve [Pa K .- 1]
   sa = (2.502   .*  10 .^ 6)   .*  (exp.(17.269   .*  env.tair_monthly  ./   (237.3  .+  env.tair_monthly)) ./  (237.3  .+  env.tair_monthly) .^ 2)
@@ -509,19 +509,19 @@ GPP_function_for_optimization = function(; env, tr, pars)
           
               # Calculate Adt with photosynthesis module
               p_i = w   .*  p_a # [Pa]
-              c1 = pars.alpha_c3   .*  f_tair_limit[i]   .*  ( ( p_i  .-  Tau_star[i] )  ./   ( p_i  .+  ( 2  .* Tau_star[i]) ) )
-              c2 = (p_i  .-  Tau_star[i]) ./  (p_i  .+  (k_c[i]   .*  (1  .+  (pars.pO2 ./  k_o[i]))))
+              c1 = par.alpha_c3   .*  f_tair_limit[i]   .*  ( ( p_i  .-  Tau_star[i] )  ./   ( p_i  .+  ( 2  .* Tau_star[i]) ) )
+              c2 = (p_i  .-  Tau_star[i]) ./  (p_i  .+  (k_c[i]   .*  (1  .+  (par.pO2 ./  k_o[i]))))
               
               # Calculate light .- limited photosynthesis on hourly basis [g C m .- 2 h .- 1]
-              Je_hourly = c1   .*  (APAR[i] ./  env.daylength[i])   .*  pars.c_mass
+              Je_hourly = c1   .*  (APAR[i] ./  env.daylength[i])   .*  par.c_mass
               
               # Calculate Rubisco .- limited photosynthesis rate [g C m .- 2 h .- 1]
               Jc_hourly = c2   .*  V_m[i]   .*  (1 ./  24)
               
               # Calculate daytime gross photosynthesis Agd [g C m .- 2 daytime .- 1]
-              Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* pars.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  pars.theta)   .*  env.daylength[i]
+              Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* par.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  par.theta)   .*  env.daylength[i]
               # Leaf respiration 
-              R_leaf = pars.b_c3   .*  V_m[i]
+              R_leaf = par.b_c3   .*  V_m[i]
               # Net daily photosynthesis (minus leaf respiration)
               And = Agd  .-  R_leaf
               # Daily net daytime photosynthesis (gross photosynthesis  .-  daytime dark respiration)
@@ -535,8 +535,8 @@ GPP_function_for_optimization = function(; env, tr, pars)
       
               Adt_v2_mm_s = c_a   .*  (gc  .-  gmin)   .*  ((1  .-  w) ./  1.6) # in mm s .- 1 
               Adt_v2_m_s = Adt_v2_mm_s   .*  (1 ./  1000) # m s .- 1  .-  .- > m3 m .- 2 s .- 1
-              Adt_v2_mol_day = Adt_v2_m_s   .*  (pars.p_atm  ./   (8.314   .*  (env.tair_monthly[i]  .+  273.15)))   .*  (env.daylength[i]   .*  60   .*  60) # convert volume co2 gas to mol m .- 2 day .- 1
-              Adt_v2 = Adt_v2_mol_day   .*  pars.c_mass # convert to g C m .- 2 day .- 1
+              Adt_v2_mol_day = Adt_v2_m_s   .*  (par.p_atm  ./   (8.314   .*  (env.tair_monthly[i]  .+  273.15)))   .*  (env.daylength[i]   .*  60   .*  60) # convert volume co2 gas to mol m .- 2 day .- 1
+              Adt_v2 = Adt_v2_mol_day   .*  par.c_mass # convert to g C m .- 2 day .- 1
               Adt_v2 = max.(- 0.5, Adt_v2) # Ensure root in a negative number to avoid failure of bisection algorithm
               
               push!(performance, Adt_v1  .-  Adt_v2)
@@ -556,22 +556,22 @@ GPP_function_for_optimization = function(; env, tr, pars)
     
   # Recalculate Photosynthesis with updated ./  actual lambda considerin water limitation
   p_i = lambda   .*  p_a # [Pa]
-  c1 = pars.alpha_c3   .*  f_tair_limit   .*  ( ( p_i  .-  Tau_star )  ./   ( p_i  .+  ( 2  .* Tau_star) ) )
-  c2 = (p_i  .-  Tau_star) ./  (p_i  .+  (k_c   .*  (1  .+  (pars.pO2 ./  k_o))))
+  c1 = par.alpha_c3   .*  f_tair_limit   .*  ( ( p_i  .-  Tau_star )  ./   ( p_i  .+  ( 2  .* Tau_star) ) )
+  c2 = (p_i  .-  Tau_star) ./  (p_i  .+  (k_c   .*  (1  .+  (par.pO2 ./  k_o))))
   
   # Calculate light .- limited photosynthesis on hourly basis [g C m .- 2 h .- 1]
-  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  pars.c_mass
+  Je_hourly = c1   .*  (APAR ./  env.daylength)   .*  par.c_mass
   
   # Calculate Rubisco .- limited photosynthesis rate [g C m .- 2 h .- 1]
   Jc_hourly = c2   .*  V_m   .*  (1 ./  24)
   
   # Calculate daytime gross photosynthesis Agd [g C m .- 2 daytime .- 1]
-  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* pars.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  pars.theta)   .*  env.daylength
+  Agd = ( Je_hourly  .+  Jc_hourly  .-  sqrt.((Je_hourly  .+  Jc_hourly) .^ 2  .-  4  .* par.theta  .* Je_hourly  .* Jc_hourly) )  ./   (2   .*  par.theta)   .*  env.daylength
   
 
   ################ Calculate AET  .-  at the moment just zero during non .- growing season
   # Leaf respiration
-  R_leaf = pars.b_c3   .*  V_m
+  R_leaf = par.b_c3   .*  V_m
   # Net daily photosynthesis (minus leaf respiration)
   And = Agd  .-  R_leaf
   # Daily net daytime photosynthesis (gross photosynthesis  .-  daytime dark respiration)
@@ -579,11 +579,11 @@ GPP_function_for_optimization = function(; env, tr, pars)
 
   # Calculate canopy conductance
   gmin = 0.3 #0.3 # minimum water loss in [mm s .- 1]
-  Adt_mol = Adt  ./   pars.c_mass # mol C m .- 2 day .- 1
+  Adt_mol = Adt  ./   par.c_mass # mol C m .- 2 day .- 1
   Adt_mol_s = Adt_mol  ./   (env.daylength   .*  60   .*  60) # mol C m .- 2 s .- 1
-  c_a = (p_a ./  pars.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
+  c_a = (p_a ./  par.p_atm) # ambient mole fraction of co2 (check Sitch 2003): p_a = p   .*  ca (p = atmospheric pressure)
   gc_act_mol = ((1.6   .*  Adt_mol_s) ./  (c_a   .*  (1  .-  lambda))) # mol H2O m .- 2 s .- 1
-  gc_act_mm = gmin  .+  (gc_act_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   pars.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
+  gc_act_mm = gmin  .+  (gc_act_mol   .*  8.314   .*  (env.tair_monthly  .+  273.15)  ./   par.p_atm)   .*  1000 # m3 H2O m .- 2 s .- 1   .*  1000  .-  .- > mm H2O s .- 1 (using ideal gas constant)
   
   # # Slope of saturation vapour pressure curve [Pa K .- 1]
   sa = (2.502   .*  10 .^ 6)   .*  (exp.(17.269   .*  env.tair_monthly  ./   (237.3  .+  env.tair_monthly)) ./  (237.3  .+  env.tair_monthly) .^ 2)
@@ -602,9 +602,9 @@ GPP_function_for_optimization = function(; env, tr, pars)
 
   # Integration
   Agd = max.(0, Agd) # Take care of rare cases with negative daily photosynthesis (e.g., lambda == 0)
-  Agd = Agd    .*  pars.month_days 
+  Agd = Agd    .*  par.month_days 
   GPP = sum(Agd)
-  AET = AET_monthly   .*  pars.month_days
+  AET = AET_monthly   .*  par.month_days
   AET_sum = sum(AET)
   V_m = V_m 
   
@@ -618,8 +618,8 @@ GPP_function_for_optimization = function(; env, tr, pars)
   
   #######
   # ### Test Results with different approach with first deriving And then adding nighttime respiration
-  # And = APAR[favorable_months]   .*  (c1 ./  c2)   .*  (c2  .-  (2  .* pars.theta  .- 1)  .* s  .-  2  .* (c2 .- pars.theta  .* s)  .* sigma)   .*  pars.c_mass
-  # Agd = And  .+  (pars.b_c3   .*  V_m)
+  # And = APAR[favorable_months]   .*  (c1 ./  c2)   .*  (c2  .-  (2  .* par.theta  .- 1)  .* s  .-  2  .* (c2 .- par.theta  .* s)  .* sigma)   .*  par.c_mass
+  # Agd = And  .+  (par.b_c3   .*  V_m)
   ########
   
   
@@ -634,7 +634,7 @@ GPP_function_for_optimization = function(; env, tr, pars)
 end
 
 ### Maintenance respiration 
-R_maintenance_function =  function(; env, tr, pars, GPP_out)
+R_maintenance_function =  function(; env, tr, par, GPP_out)
   
   # If plant is seasonal, derive favorable growing season adjusted for leaf longevity 
   if tr.seasonality == 0 # 0 represents a seasonal plant
@@ -673,23 +673,23 @@ R_maintenance_function =  function(; env, tr, pars, GPP_out)
   end
   
   # Active carbon pools
-  r_leaf =  sum(pars.b_c3  .*  V_m  .*  pars.month_days) # Is already adjusted for growing season, if plant is seasonal (see V_m)
+  r_leaf =  sum(par.b_c3  .*  V_m  .*  par.month_days) # Is already adjusted for growing season, if plant is seasonal (see V_m)
   
-  r_sapwood =  sum((pars.r   .*  pars.k  .*  acclimation_factor  .*  (tr.C_sapwood ./ pars.cn_wood)  .*  g_T)  .*  pars.month_days)  ./  tr.CA
-  r_fineroot =  sum((pars.r  .*  pars.k  .*  acclimation_factor  .*  (tr.C_fineroot ./ pars.cn_root)  .*  g_T_soil)  .*  pars.month_days)  ./  tr.CA
+  r_sapwood =  sum((par.r   .*  par.k  .*  acclimation_factor  .*  (tr.C_sapwood ./ par.cn_wood)  .*  g_T)  .*  par.month_days)  ./  tr.CA
+  r_fineroot =  sum((par.r  .*  par.k  .*  acclimation_factor  .*  (tr.C_fineroot ./ par.cn_root)  .*  g_T_soil)  .*  par.month_days)  ./  tr.CA
   
   # Structural carbon pools  .-  no ./ reduced respiration
-  r_heartwood =  sum((pars.r   .*  pars.k  .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_heartwood ./ pars.cn_wood)  .*  g_T)  .*  pars.month_days)  ./  tr.CA
-  r_coarseroot =  sum((pars.r  .*  pars.k .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_coarseroot ./ pars.cn_root)  .*  g_T_soil)  .*  pars.month_days)  ./  tr.CA
+  r_heartwood =  sum((par.r   .*  par.k  .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_heartwood ./ par.cn_wood)  .*  g_T)  .*  par.month_days)  ./  tr.CA
+  r_coarseroot =  sum((par.r  .*  par.k .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_coarseroot ./ par.cn_root)  .*  g_T_soil)  .*  par.month_days)  ./  tr.CA
   
 
   if tr.seasonality == 0
-    r_sapwood =  sum((pars.r   .*  pars.k  .*  acclimation_factor  .*  (tr.C_sapwood ./ pars.cn_wood)  .*  g_T)  .*  pars.month_days  .*  favorable_months)  ./  tr.CA
-    r_fineroot =  sum((pars.r  .*  pars.k  .*  acclimation_factor  .*  (tr.C_fineroot ./ pars.cn_root)  .*  g_T_soil)  .*  pars.month_days  .*  favorable_months)  ./  tr.CA
+    r_sapwood =  sum((par.r   .*  par.k  .*  acclimation_factor  .*  (tr.C_sapwood ./ par.cn_wood)  .*  g_T)  .*  par.month_days  .*  favorable_months)  ./  tr.CA
+    r_fineroot =  sum((par.r  .*  par.k  .*  acclimation_factor  .*  (tr.C_fineroot ./ par.cn_root)  .*  g_T_soil)  .*  par.month_days  .*  favorable_months)  ./  tr.CA
 
     # Structural carbon pools  .-  no ./ reduced respiration
-    r_heartwood =  sum((pars.r   .*  pars.k  .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_heartwood ./ pars.cn_wood)  .*  g_T)  .*  pars.month_days  .*  favorable_months)  ./  tr.CA
-    r_coarseroot =  sum((pars.r  .*  pars.k .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_coarseroot ./ pars.cn_root)  .*  g_T_soil)  .*  pars.month_days  .*  favorable_months)  ./  tr.CA
+    r_heartwood =  sum((par.r   .*  par.k  .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_heartwood ./ par.cn_wood)  .*  g_T)  .*  par.month_days  .*  favorable_months)  ./  tr.CA
+    r_coarseroot =  sum((par.r  .*  par.k .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_coarseroot ./ par.cn_root)  .*  g_T_soil)  .*  par.month_days  .*  favorable_months)  ./  tr.CA
   end
   
   R_maintenance_total =  r_leaf  .+  r_sapwood  .+  r_fineroot  .+  r_heartwood  .+  r_coarseroot
@@ -699,7 +699,7 @@ R_maintenance_function =  function(; env, tr, pars, GPP_out)
 end
 
 ### Tissue turnover 
-C_turnover_function =  function(; env, tr, pars)
+C_turnover_function =  function(; env, tr, par)
 
   # Heat and frost mortaility - frost mortatility reduced for evergreens compared to deciduous
   # Increase turnover in mortality-prone environments
@@ -719,9 +719,9 @@ C_turnover_function =  function(; env, tr, pars)
 
     if tr.a_ll >= 1
       C_turnover_fineroot =  tr.C_fineroot   .*  (1 ./ tr.a_ll)
-      C_turnover_coarseroot =  tr.C_coarseroot  .*  pars.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_sapwood =  tr.C_sapwood  .*  pars.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_heartwood =  tr.C_heartwood  .*  pars.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_coarseroot =  tr.C_coarseroot  .*  par.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_sapwood =  tr.C_sapwood  .*  par.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_heartwood =  tr.C_heartwood  .*  par.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
       C_turnover_leaves =  tr.C_leaf  .*  (1 ./ tr.a_ll)
       
       C_turnover_total =  C_turnover_fineroot  .+  C_turnover_coarseroot  .+  C_turnover_sapwood  .+  C_turnover_heartwood  .+  C_turnover_leaves
@@ -729,9 +729,9 @@ C_turnover_function =  function(; env, tr, pars)
     elseif tr.a_ll < 1
       
       C_turnover_fineroot =  tr.C_fineroot  .*  1  #(2  .-  tr.a_ll) # Increased root costs for more acquisitive strategies is unknown
-      C_turnover_coarseroot =  tr.C_coarseroot  .*  pars.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_sapwood =  tr.C_sapwood  .*  pars.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_heartwood =  tr.C_heartwood  .*  pars.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_coarseroot =  tr.C_coarseroot  .*  par.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_sapwood =  tr.C_sapwood  .*  par.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_heartwood =  tr.C_heartwood  .*  par.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
       C_turnover_leaves =  tr.C_leaf  .*  (1 ./ tr.a_ll)
       
       C_turnover_total =  C_turnover_fineroot  .+  C_turnover_coarseroot  .+  C_turnover_sapwood  .+  C_turnover_heartwood  .+  C_turnover_leaves
@@ -741,9 +741,9 @@ C_turnover_function =  function(; env, tr, pars)
     
     if tr.a_ll >= 1 
       C_turnover_fineroot =  tr.C_fineroot   .*  (1 ./ tr.a_ll)
-      C_turnover_coarseroot =  tr.C_coarseroot  .*  pars.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_sapwood =  tr.C_sapwood  .*  pars.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_heartwood =  tr.C_heartwood  .*  pars.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_coarseroot =  tr.C_coarseroot  .*  par.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_sapwood =  tr.C_sapwood  .*  par.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_heartwood =  tr.C_heartwood  .*  par.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
       C_turnover_leaves =  tr.C_leaf  .*  (1 ./ tr.a_ll)
       
       C_turnover_total =  C_turnover_fineroot  .+  C_turnover_coarseroot  .+  C_turnover_sapwood  .+  C_turnover_heartwood  .+  C_turnover_leaves
@@ -751,9 +751,9 @@ C_turnover_function =  function(; env, tr, pars)
     elseif tr.a_ll < 1
       
       C_turnover_fineroot =  tr.C_fineroot  .*  1 
-      C_turnover_coarseroot =  tr.C_coarseroot  .*  pars.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_sapwood =  tr.C_sapwood  .*  pars.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
-      C_turnover_heartwood =  tr.C_heartwood  .*  pars.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_coarseroot =  tr.C_coarseroot  .*  par.f_coarseroot  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_sapwood =  tr.C_sapwood  .*  par.f_sapwood  .*  (1  .+  heat_damage  .+  frost_damage)
+      C_turnover_heartwood =  tr.C_heartwood  .*  par.f_heartwood  .*  (1  .+  heat_damage  .+  frost_damage)
       C_turnover_leaves =  tr.C_leaf  .*  1
       
       C_turnover_total =  C_turnover_fineroot  .+  C_turnover_coarseroot  .+  C_turnover_sapwood  .+  C_turnover_heartwood  .+  C_turnover_leaves
@@ -769,14 +769,14 @@ C_turnover_function =  function(; env, tr, pars)
 end
 
 ### Calculate NPP 
-calc_NPP =  function(; GPP_out, R_maintenance, pars)
-  NPP =  (1  .-  pars.r_gr)  .*  (GPP_out.GPP  .-  R_maintenance)
+calc_NPP =  function(; GPP_out, R_maintenance, par)
+  NPP =  (1  .-  par.r_gr)  .*  (GPP_out.GPP  .-  R_maintenance)
   return(NPP)
 end
 
 ### Calculate carbon balance - net C gain after respiration maintenance/growth, reproduction carbon investments and tissue turnover 
-calc_net_C_gain =  function(; NPP, C_turnover_total)
-  net_C_gain =  ((1 - pars.r_repr) .* NPP)  .-  C_turnover_total # area normalized (CA) - > [g C m-2 yr-1]
+calc_net_C_gain =  function(; NPP, C_turnover_total, par)
+  net_C_gain =  ((1 - par.r_repr) .* NPP)  .-  C_turnover_total # area normalized (CA) - > [g C m-2 yr-1]
   return(net_C_gain)
 end
 
@@ -786,13 +786,13 @@ trait_optimization_function =  function(x, pass_params)
   # Unpack passed arguments 
   env = pass_params.env
   # tr = pass_params.tr # New optimization, complete decoupling of optimization from current trait values
-  pars = pass_params.pars
+  par = pass_params.par
 
   # If seasonality is an option (based on env)  --> enter seasonal optimization 
   # This is done by a preliminary assignment of seasonal habit. Will be changed in trait evolution depending on actual a_ll
-  # old: if (sum(env.tair_monthly .<= pars.temp_threshold_growing_season) >= 3. && tr.a_ll >= 1.) || (tr.seasonality == 0. && sum(env.tair_monthly .<= pars.temp_threshold_growing_season) >= 3.)
+  # old: if (sum(env.tair_monthly .<= par.temp_threshold_growing_season) >= 3. && tr.a_ll >= 1.) || (tr.seasonality == 0. && sum(env.tair_monthly .<= par.temp_threshold_growing_season) >= 3.)
   # new: The decoupling between optimization and current traits might give some non-optimal behavior for the seasonal locations under slow evolution: evergreen might be more optimal but plant will tend to evolve towards seasonal, resulting in a transient non-optimal state
-  if sum(env.tair_monthly .<= pars.temp_threshold_growing_season) >= 3.
+  if sum(env.tair_monthly .<= par.temp_threshold_growing_season) >= 3.
     seasonality_optim =  0
   else
     seasonality_optim =  1
@@ -820,13 +820,13 @@ trait_optimization_function =  function(x, pass_params)
   Pave_optim =  mean(env.precip_monthly)
   )
   
-  tr_optim =  plant_allometry(tr = tr_optim,  pars = pars) # Hypothetical plant
-  GPP_out_optim =  GPP_function_for_optimization(env = env, tr = tr_optim, pars = pars)
-  #GPP_out_optim =  GPP_function_for_optimization(env = env, tr = tr_optim, pars = pars)
-  R_maintenance_optim =  R_maintenance_function(env = env, tr = tr_optim, pars = pars, GPP_out = GPP_out_optim)
-  NPP_optim =  calc_NPP(GPP_out = GPP_out_optim, R_maintenance = R_maintenance_optim, pars = pars)
-  C_turnover_total_optim =  C_turnover_function(env = env, tr = tr_optim, pars = pars)
-  Net_C_gain_optim =  calc_net_C_gain(NPP = NPP_optim, C_turnover_total = C_turnover_total_optim)
+  tr_optim =  plant_allometry(tr = tr_optim,  par = par) # Hypothetical plant
+  GPP_out_optim =  GPP_function_for_optimization(env = env, tr = tr_optim, par = par)
+  #GPP_out_optim =  GPP_function_for_optimization(env = env, tr = tr_optim, par = par)
+  R_maintenance_optim =  R_maintenance_function(env = env, tr = tr_optim, par = par, GPP_out = GPP_out_optim)
+  NPP_optim =  calc_NPP(GPP_out = GPP_out_optim, R_maintenance = R_maintenance_optim, par = par)
+  C_turnover_total_optim =  C_turnover_function(env = env, tr = tr_optim, par = par)
+  Net_C_gain_optim =  calc_net_C_gain(NPP = NPP_optim, C_turnover_total = C_turnover_total_optim, par=par)
 
   # Rule out all situations in which there is no positive NPP
   if NPP_optim < 0 
@@ -839,12 +839,12 @@ trait_optimization_function =  function(x, pass_params)
 end
 
 ### Run Optimizer 
-trait_optimizer = function(; env, pars,trait_optimization_function, iters)
+trait_optimizer = function(; env, par,trait_optimization_function, iters)
 
     # Leaf C and longevity optimization 
     pass_params = (
       env = env, 
-      pars = pars,
+      par = par,
     )
   
     f = OptimizationFunction(trait_optimization_function)
@@ -853,7 +853,7 @@ trait_optimizer = function(; env, pars,trait_optimization_function, iters)
     a_ll_optimized, C_leaf_optimized, H_optimized = Optimization.solve(prob, ECA(), maxiters = iters, abstol = 50)
       
     # Seasonality optimization 
-    if (sum(env.tair_monthly .<= pars.temp_threshold_growing_season) >= 3. && a_ll_optimized .< 1.)
+    if (sum(env.tair_monthly .<= par.temp_threshold_growing_season) >= 3. && a_ll_optimized .< 1.)
       seasonality_optimized =  0.
     else
       seasonality_optimized =  1.
@@ -875,14 +875,14 @@ trait_optimizer = function(; env, pars,trait_optimization_function, iters)
 end
 
 ### Trait evolution and height function 
-trait_evolution = function(; optimized_traits, env, tr, pars, evorate)
+trait_evolution = function(; optimized_traits, env, tr, par, evorate)
 
   new_C_leaf = tr.C_leaf + evorate * (optimized_traits.C_leaf_optimized - tr.C_leaf)
 
   new_r_s_r = tr.r_s_r + evorate * (optimized_traits.r_s_r_optimized - tr.r_s_r)
 
   # Is seasonality an option? 
-  if sum(env.tair_monthly .<= pars.temp_threshold_growing_season) >= 3.
+  if sum(env.tair_monthly .<= par.temp_threshold_growing_season) >= 3.
     potential_seasonality =  0
   else
     potential_seasonality =  1

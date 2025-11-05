@@ -23,11 +23,19 @@
     - dispersal: Rate of dispersal. Defines moving window radius to be searched for competing vegetation units. In km. 
     - res: Target resolution of the model in arcdegrees, will be applied in longitude and latitude
     - outputdir: path to store outputs
+    - kwargs...: Optional named tuple for changes in the TREED.pars parameter list. I.e., temp_niche_breadth_parameter: temp_niche_breadth_parameter=0.03, or any other paramter
 
     All Raster inputs need to match in resolution and orientation. Orientation of rasters [X = longitude, Y = latitude].
 """
-function TREEDnonsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO2vec, evorate, startinsteady, dispersal, res, outputdir)
+function TREEDnonsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec, CO2vec, evorate, startinsteady, dispersal, res, outputdir, kwargs... )
 
+    ############################################################
+    ### 0) Include changes in paramter file  ###################
+    ############################################################
+    pars2 = merge(pars, kwargs)
+    println(pars2)
+
+    # Start loop 
     traits_end = ()
     for timestep in eachindex(tairvec)
         
@@ -61,7 +69,7 @@ function TREEDnonsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec,
 
         println(string("Starting optimization function for timestep ", timestep))
 
-        traits_optimized = run_TREED_optimization(traits_start, climate)
+        traits_optimized = run_TREED_optimization(traits_start, climate, pars2)
 
         println("Done with optimization")
 
@@ -71,22 +79,22 @@ function TREEDnonsteadycontinuous(;tairvec, precipvec, cltvec, rsdsvec, topovec,
 
         if timestep == 1 & startinsteady == true
             # First timestep set evorate to 1 -> update start trait distribution to initial optimum steady state
-            traits_evolved = run_TREED_evolution(traits_start, traits_optimized, climate, 1)
+            traits_evolved = run_TREED_evolution(traits_start, traits_optimized, climate, 1, pars2)
         else 
-            traits_evolved = run_TREED_evolution(traits_start, traits_optimized, climate, evorate)
+            traits_evolved = run_TREED_evolution(traits_start, traits_optimized, climate, evorate, pars2)
         end
 
         ############################################################
         ### 5) Run dispersal and competition  ######################
         ############################################################
 
-        traits_end = run_TREED_ecology(traits_start, traits_evolved, traits_optimized, climate, dispersal)
+        traits_end = run_TREED_ecology(traits_start, traits_evolved, traits_optimized, climate, dispersal, pars2)
 
         ############################################################
         ### 6) calculate fluxes with final traits distribution  ####
         ############################################################
 
-        vegetation_output = run_TREED_final_distribution(traits_end, climate)
+        vegetation_output = run_TREED_final_distribution(traits_end, climate, pars2)
 
 
         ############################################################
