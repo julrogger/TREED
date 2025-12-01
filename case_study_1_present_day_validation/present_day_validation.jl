@@ -167,7 +167,7 @@ text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=4.25, y=3.25, noclip
 AGB_model = ((TREED_output.C_leaf .+ TREED_output.C_heartwood .+ TREED_output.C_sapwood) ./ TREED_output.CA) .* (10000/1e+6) # in Mg C ha-1
 AGB_model[isnan.(AGB_model) .&& .!isnan.(TREED_output.H)] .= 0
 
-AGB_cpt = makecpt(cmap=:turbo, range=(0, 150), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="48/18/59", COLOR_FOREGROUND="126/5/2"))
+AGB_cpt = makecpt(cmap=:roma, reverse=true, range=(-1, 150), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="4/50/152", COLOR_FOREGROUND="126/24/0"))
 grdimage!(convert_raster_to_GMT_grid(AGB_model), projection=:Mollweide, theme="A2xy",
     cmap=AGB_cpt, xaxis=(annot=0, ), yaxis=(annot=60,), figsize=6.5, par=(FONT_ANNOT=7,), yshift=-4)
 grdimage!(convert_raster_to_GMT_grid(AGB_ref), yaxis=(annot=0, ), xaxis=(annot=0,), projection=:Mollweide, theme="A2xy",
@@ -180,7 +180,7 @@ text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=4.25, y=3.25, noclip
 BGB_model = ((TREED_output.C_coarseroot .+ TREED_output.C_fineroot) ./ TREED_output.CA) .* (10000/1e+6) # in Mg C ha-1
 BGB_model[isinf.(BGB_model) .&& .!isnan.(TREED_output.H)] .= 0
 
-BGB_cpt = makecpt(cmap=:turbo, range=(0, 40), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="48/18/59", COLOR_FOREGROUND="126/5/2"))
+BGB_cpt = makecpt(cmap=:roma, reverse=true, range=(-1, 40), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="4/50/152", COLOR_FOREGROUND="126/24/0"))
 grdimage!(convert_raster_to_GMT_grid(BGB_model), projection=:Mollweide, theme="A2xy",
     cmap=BGB_cpt, xaxis=(annot=0, ), yaxis=(annot=60,), figsize=6.5, par=(FONT_ANNOT=7,), yshift=-4)
 grdimage!(convert_raster_to_GMT_grid(BGB_ref), yaxis=(annot=0, ), xaxis=(annot=0,), projection=:Mollweide, theme="A2xy",
@@ -271,26 +271,26 @@ GMT.text!("(a)", x = -68, y = 152, noclip=true, font=(10,"Helvetica",:black),
 
 
 ########## Richness estimation 
-FD_cpt = makecpt(cmap=:turbo, range=(0, 0.25), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="48/18/59", COLOR_FOREGROUND="126/5/2"))
+FD_cpt = makecpt(cmap=:batlowK, continuous=true, range=(0, 0.25), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="4/6/11", COLOR_FOREGROUND="250/204/249"))
 grdimage(convert_raster_to_GMT_grid(TREED_output.functional_diversity), projection=:Mollweide, theme="A2xy",
     cmap=FD_cpt, xaxis=(annot=0, ), yaxis=(annot=60,), figsize=6.5, par=(FONT_ANNOT=7,))
 colorbar!(pos=(paper=true, anchor=(3.5,-0.1), size=(4,0.2), justify=:TC, horizontal=true, triangles=:f), frame=(annot=:auto, ), xlabel="Functional diversity index (0-1)", 
     par=(FONT_LABEL=12, FONT_ANNOT_PRIMARY=10))
 
-EH_cpt = makecpt(cmap=:turbo, range=(0, 0.5), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="48/18/59", COLOR_FOREGROUND="126/5/2"))
+EH_cpt = makecpt(cmap=:batlowK, continuous=true, range=(0, 0.5), overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="4/6/11", COLOR_FOREGROUND="250/204/249"))
 grdimage!(convert_raster_to_GMT_grid(TREED_output.gamma_EH), projection=:Mollweide, theme="A2xy",
     cmap=EH_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=6.5, par=(FONT_ANNOT=7,), xshift=7)
 colorbar!(pos=(paper=true, anchor=(3.5,-0.1), size=(4,0.2), justify=:TC, horizontal=true, triangles=:f), frame=(annot=:auto, ), xlabel="Landscape heterogeneity (0-1)", 
     par=(FONT_LABEL=12, FONT_ANNOT_PRIMARY=10))
 
-GI_cpt = makecpt(cmap=:turbo, range=(0, 1.0), overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="48/18/59", COLOR_FOREGROUND="126/5/2"))
+GI_cpt = makecpt(cmap=:batlowK, continuous=true, range=(0, 1.0), overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="4/6/11", COLOR_FOREGROUND="250/204/249"))
 grdimage!(convert_raster_to_GMT_grid(TREED_output.gamma_GI), projection=:Mollweide, theme="A2xy",
     cmap=GI_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=6.5, par=(FONT_ANNOT=7,), xshift=7)
 colorbar!(pos=(paper=true, anchor=(3.5,-0.1), size=(4,0.2), justify=:TC, horizontal=true, triangles=:f), frame=(annot=:auto, ), xlabel="Landscape fragmentation (0-1)", 
     par=(FONT_LABEL=12, FONT_ANNOT_PRIMARY=10))
 
-SR_cpt = makecpt(cmap=("71/123/242", "40/187/236", "32/234/172", "120.0/254.0/90.0", "196.0/241.0/52.0", "246.0/195.0/58.0", "251.0/128.0/34.0", "221.0/61.0/8.0", "163.0/19.0/1.0"),
-    range=[0, 600, 800, 1000, 1200, 1400, 1800, 2200, 4000, 6000], overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="71/123/242", COLOR_FOREGROUND="163.0/19.0/1.0"))
+SR_cpt = makecpt(cmap=:batlowK, continuous = true, 
+    range=(0, 2000), overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="4/6/11", COLOR_FOREGROUND="163.0/19.0/1.0"))
 
 grdimage!(convert_raster_to_GMT_grid((10^3.8355) .* (TREED_output.diversity_index .^ 0.302779)), projection=:Mollweide, theme="A2xy",
     cmap=SR_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=10, par=(FONT_ANNOT=7,), xshift=-14, yshift=-7)
@@ -318,15 +318,16 @@ GMT.text!("(c)", x=1.5, y=8.5, noclip=true, font=(10, "Helvetica", :black),
 dpi=700, name="./case_study_1_present_day_validation/plots/richness_estimation_validation.png")
 
 
+
 # Plot additional structures 
-C = makecpt(cmap=((0,59,71), (254,228,171)), T=[-0.1,0.5,1.1],overrule_bg=true, par=(COLOR_NAN=235,))
+C = makecpt(cmap=((0,59,71), (254,228,171)), T=[-0.1,0.5,1.1],overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="56/102/149", COLOR_FOREGROUND="15/42/3"))
 C.label = ["Deciduous","Evergreen"]
 grdimage(convert_raster_to_GMT_grid(TREED_output.seasonality), projection=:Mollweide, theme="A2xy",
     cmap=C, xaxis=(annot=0,), yaxis=(annot=60,), figsize=10, par=(FONT_ANNOT=7,))
 colorbar!(pos=(paper=true, anchor=(5,-0.2), size=(4,0.2), justify=:TC, horizontal=true),
     B=:none, equal_size=(gap=0.1,),par=(FONT_ANNOT=12,))
 
-a_ll_cpt = makecpt(cmap=:turbo, range=(0, 5), inverse=true, overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="48/18/59", COLOR_FOREGROUND="126/5/2"))
+a_ll_cpt = makecpt(cmap=:cork, hinge=1, range=(0, 5), overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="56/102/149", COLOR_FOREGROUND="15/42/3"))
 grdimage!(convert_raster_to_GMT_grid(TREED_output.a_ll), projection=:Mollweide, theme="A2xy",
     cmap=a_ll_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=10, par=(FONT_ANNOT=7,), xshift=10.5)
 colorbar!(pos=(paper=true, anchor=(5,-0.2), size=(4,0.2), justify=:TC, horizontal=true), xlabel="Leaf longevity (years)",
@@ -342,13 +343,14 @@ phenology = data.seasonality
 H = data.H
 LMA  = 1 ./ (data.SLA .* 0.47)
 
-cpt = makecpt(range = (0.2, 5), color=:turbo, reverse=true)
-GMT.basemap!(region=(0, 86, 45, 220), figsize=(8, 6), xlabel="Absolute latitude", ylabel="LMA (g / m@+2@+)",
+#cpt = makecpt(range = (0, 5), continuous=true, color=:cork, hinge=1)
+cpt = makecpt(cmap="darkblue,darkgreen", range=[0, 1, 5])
+GMT.basemap!(region=(0, 86, 45, 225), figsize=(8, 6), xlabel="Absolute latitude (degrees)", ylabel="LMA (g / m@+2@+)",
     theme=("A2xy"), par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=6,), yshift = -8, xshift=-9.5)
 GMT.scatter!(abs.(lat[.!isnan.(a_ll) .&& H .> 0]), LMA[.!isnan.(a_ll) .&& H .> 0],
     zcolor=a_ll[.!isnan.(a_ll) .&& H .> 0], color=cpt, alpha = 97)
-GMT.colorbar!(pos=(paper=true, anchor=(8.5,5), size=(4,0.2), justify=:TC), xlabel="Leaf longevity (years)",
-    par=(FONT_ANNOT=12, FONT_ANNOT_PRIMARY = 12))
+#GMT.colorbar!(pos=(paper=true, anchor=(8.5,5), size=(4,0.2), justify=:TC), xlabel="Leaf longevity (years)",
+#    par=(FONT_ANNOT=12, FONT_ANNOT_PRIMARY = 12))
 GMT.text!("(c)",x=-10, y=220, noclip=true ,font=(10,"Helvetica",:black))
 
 
@@ -366,17 +368,18 @@ linear_fit_D = lm(@formula(y ~ x), data)
 
 Plots.scatter(abs.(glopnet_lma.Latitude), glopnet_lma.LMA, ylim=(20, 300))
 
-GMT.basemap!(region=(0, 86, 10, 400), figsize=(8, 6), xlabel="Absolute latitude", ylabel="LMA (g / m@+2@+)",
+GMT.basemap!(region=(0, 86, 10, 400), figsize=(8, 6), xlabel="Absolute latitude (degrees)", ylabel="LMA (g / m@+2@+)",
     theme=("A2xy"), par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=6,), xshift=11)
 GMT.scatter!(lat[DE .== "E"], LMA[DE .== "E"], alpha = 50, color=:darkgreen)
-GMT.scatter!(lat[DE .== "D"], LMA[DE .== "D"], alpha = 50, color=:darkred)
+GMT.scatter!(lat[DE .== "D"], LMA[DE .== "D"], alpha = 50, color=:darkblue)
 x = 0:1:90
 y_evergreen = 150.712 .+ 1.26 .* x
 y_deciduous = 101.75 .- 0.5 .* x
 GMT.plot!(x, y_evergreen, linecolor=:darkgreen, lw=1.5, legend=(label="Longevity > 1", pos=:TR, box=:none))
-GMT.plot!(x, y_deciduous, linecolor=:darkred, lw=1.5, legend=(label="Longevity <= 1", pos=:TR, box=:none))
+GMT.plot!(x, y_deciduous, linecolor=:darkblue, lw=1.5, legend=(label="Longevity <= 1", pos=:TR, box=:none))
 GMT.text!("(d)",x=-10.25, y=400, noclip=true ,font=(10,"Helvetica",:black), 
 dpi=700, name="./case_study_1_present_day_validation/plots/phenology_all.png")
+
 
 
 # Additional plot for methods: illstruate SLA~a_ll and k~a_ll relationship 
