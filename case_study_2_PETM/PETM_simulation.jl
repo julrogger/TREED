@@ -110,7 +110,7 @@ grdimage!(convert_raster_to_GMT_grid(TREED_output_pre.NPP), projection=:Mollweid
     cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=10, par=(FONT_ANNOT=7,), yshift=-6.25)
 grdimage!(convert_raster_to_GMT_grid(TREED_output_peak.NPP), projection=:Mollweide, theme="A2xy",
     cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=10, par=(FONT_ANNOT=7,), xshift=10.25)
-colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="H (m)"),par=(FONT_ANNOT_PRIMARY=12,))
+colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="NPP (g C m@+-2@+)"),par=(FONT_ANNOT_PRIMARY=12,))
 text!("(c)",frame=:none,region=(0,10,0,10), xshift=-10.25, proj=:linear, x=0, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=6.75, y=5.0, noclip=true ,font=(10,"Helvetica",:black), 
 dpi=700, name="./case_study_2_PETM/plots/PETM_pre_peak_steady_state.png") 
