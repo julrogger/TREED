@@ -39,7 +39,7 @@ You can find the model code in the src directory.
 
 ### Case studies: 
 
-This repostiroy comes with three case study applications of the model, which can be used to get started with the model, or can be modified according to the user's interest. 
+This repostiroy comes with three case study applications of the model, which can be used to get started with the model, or can be modified according to the user's interest. (A link to access the climate and topography input data will be provided soon..)
 
 - Case study 1: Run the model one time step in steady state using present-day climate inputs for validation of simulated vegetation structures and fluxes.
 
