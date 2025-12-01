@@ -7,13 +7,15 @@ To run the model, download this repository and open julia from the repository.
 
 Next, activate the project environment
 
-```bash
+```julia
 ] activate .
+```
 
 Next, run 
 
-```bash
+```julia
 ] instantiate 
+```
 
 which will install all the packages listed in the Project.toml and the versions specified in the Manifest.toml. You should now be good to go. 
 
