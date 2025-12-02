@@ -78,7 +78,7 @@ CO2 = 360.0 # Current atmospheric CO2, transferred to vegetation model
 FDsampling = true # Assessment of functional diversity  
 RIsampling = true # Assessment of species richness potential ("diversity index")
 RI_landscape_window = 300.0 # Width of the landscape window used for the diversity assessment (in km)
-outputdir = "./case_study_1_present_day_validation/TREED_present_output" # where should outputs be stored
+outputdir = "./TREED_output_directory" # where should outputs be stored
 
 # Run TREED model
 TREED_output = TREEDsteadystep(tair=tair, precip=precip, clt=clt, rsds=rsds, topo=topo, CO2=CO2, res=res, FDsampling=FDsampling, RIsampling=RIsampling, RI_landscape_window=RI_landscape_window, outputdir=outputdir)
