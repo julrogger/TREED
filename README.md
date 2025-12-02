@@ -5,6 +5,14 @@ This repository contains the code of the TREED vegetation model, a trait- and op
 
 To run the model, download this repository and open julia from the repository. 
 
+To enable multithreading, start the julia session enabling multiple threads, for example by: 
+
+```bash
+$ julia --threads 12
+```
+
+(Or edit your "julia.NumThreads" option in your settings.json file in Visual Studio Code)
+
 Next, activate the project environment
 
 ```julia

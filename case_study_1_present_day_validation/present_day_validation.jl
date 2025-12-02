@@ -319,6 +319,7 @@ dpi=700, name="./case_study_1_present_day_validation/plots/richness_estimation_v
 
 
 
+
 # Plot additional structures 
 C = makecpt(cmap=((0,59,71), (254,228,171)), T=[-0.1,0.5,1.1],overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="56/102/149", COLOR_FOREGROUND="15/42/3"))
 C.label = ["Deciduous","Evergreen"]
