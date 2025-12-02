@@ -55,6 +55,36 @@ This repostiroy comes with three case study applications of the model, which can
 
 - Case study 3: Run the model 20 time steps across the PETM and consider lagged eco-evolutionary dynamics across the climate warming in the form of limited trait adaptation and dispersal. Further, several examples of how to alter default parameters of the model using the TREEDnonsteadycontinuous.jl function. 
 
+Essentially, one time step of the model can be run with the following lines of code: 
+
+
+```julia
+include("../src/TREED.jl")
+using .TREED
+using Rasters, ArchGDAL, NCDatasets
+using DimensionalData
+using DimensionalData.Lookups
+
+# read climate input rasters 
+tair = Raster("./your_monthly_tair.nc")
+precip = Raster("./your_monthly_precip.nc") 
+clt= Rasster("./your_monthly_cloud_cover.nc")
+rsds = Raster("./your_monthly_downwelling_radiation.nc")
+topo = Raster("./time_step_topography.nc")
+
+# Additional arguments needed:
+res = 0.5 # Target resolution
+CO2 = 360.0 # Current atmospheric CO2, transferred to vegetation model
+FDsampling = true # Assessment of functional diversity  
+RIsampling = true # Assessment of species richness potential ("diversity index")
+RI_landscape_window = 300.0 # Width of the landscape window used for the diversity assessment (in km)
+outputdir = "./case_study_1_present_day_validation/TREED_present_output" # where should outputs be stored
+
+# Run TREED model
+TREED_output = TREEDsteadystep(tair=tair, precip=precip, clt=clt, rsds=rsds, topo=topo, CO2=CO2, res=res, FDsampling=FDsampling, RIsampling=RIsampling, RI_landscape_window=RI_landscape_window, outputdir=outputdir)
+```
+
+
 
 ### Basic usage: 
 
