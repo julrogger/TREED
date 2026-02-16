@@ -37,7 +37,7 @@ function TREEDsteadystep(;tair, precip, clt, rsds, topo, CO2, res, FDsampling, R
     ############################################################
     ### 1) Get climate/topo inputs  ############################
     ############################################################
-
+ 
     climate = create_TREED_climate_input(tair, precip, clt, rsds, topo, CO2, res)
 
     ############################################################

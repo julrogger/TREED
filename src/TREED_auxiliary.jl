@@ -32,3 +32,22 @@ area_weighted_average = function(raster)
     area_weighted_average = sum(raster[mask] .* weights[mask]) / sum(weights[mask])
     return(area_weighted_average)
 end
+
+### Daylength calculation 
+daylength_calculation = function(latitude, DOI)
+
+  delta = 23.44 * sin( 2*pi / 365 * (DOI - 81))
+
+  P = -tan(latitude * pi / 180) * tan(delta * pi / 180)
+
+  if P >= 1
+    daylength = 0
+  elseif P <= -1
+    daylength = 24
+  else 
+    daylength = 24/pi * acos(P)
+  end
+
+  return daylength 
+
+end

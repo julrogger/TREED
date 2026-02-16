@@ -119,7 +119,7 @@ create_TREED_climate_input = function(tair, precip, clt, rsds, topo, CO2, res)
     habitable[isinf.(tair[:,:,1])] .= NaN
 
     climate = TREED_climate_input(precip, tair, rsds, rss, rls, daylength, CO2, habitable, topo)
-
+    
     return(climate)
 
 end
