@@ -163,9 +163,8 @@ run_TREED_optimization = function(traits_start, climate, pars2)
     # Initialize object to write optimization results 
     traits_optimized = deepcopy(traits_start)
 
-    # Run loop on multiple threads 
-    #     
- Threads.@threads for i = 1:length(lookup(traits_start.H, X))
+    # Run loop on multiple threads   
+    Threads.@threads for i = 1:length(lookup(traits_start.H, X))
         for j = 1:length(lookup(traits_start.H, Y))
             if climate.habitable[i, j] == 1
 
@@ -284,7 +283,7 @@ run_TREED_ecology = function(traits_start, traits_evolved, traits_optimized, cli
         C_leaf=CircularArray(traits_evolved.C_leaf),
         seasonality=CircularArray(traits_evolved.seasonality),
         r_s_r=CircularArray(traits_evolved.r_s_r),
-        Tave_optim=CircularArray(traits_evolved.Tave_optim[Ti=1]), ## To do: why do I need to put Ti = 1 to remove time dimension, should already be without time dimensions from initialization
+        Tave_optim=CircularArray(traits_evolved.Tave_optim[Ti=1]),
         Tmax_optim=CircularArray(traits_evolved.Tmax_optim[Ti=1]),
         Tmin_optim=CircularArray(traits_evolved.Tmin_optim[Ti=1]),
         Pave_optim=CircularArray(traits_evolved.Pave_optim[Ti=1])
