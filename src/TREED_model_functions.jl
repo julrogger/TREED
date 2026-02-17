@@ -533,8 +533,7 @@ run_TREED_final_distribution = function(traits_end, climate, pars2)
                 )
 
                 tr_complete = plant_allometry(tr = tr, par = pars2)
-                #GPP_output = GPP_function(env = env, tr = tr_complete, par = pars2)
-                GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, par = pars2) # For now I use the same procedure for lambda as in optimization - is more consistent! 
+                GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, par = pars2)
                 R_maintenance_output = R_maintenance_function(env = env, tr = tr_complete, par = pars2, GPP_out = GPP_output)
                 NPP_output = calc_NPP(GPP_out = GPP_output, R_maintenance = R_maintenance_output, par = pars2)
                 C_turnover_total_output = C_turnover_function(env = env, tr = tr_complete, par = pars2)
@@ -624,8 +623,6 @@ run_TREED_functional_diversity_sampling = function(traits_end, climate, H_range,
     Threads.@threads for i = 1:length(lookup(traits_end.H, X))
         for j = 1:length(lookup(traits_end.H, Y))
             if climate.habitable[i, j] == 1
-            
-                #print(i / length(lookup(traits_start.H, X)))
 
                 # Extract climate at location 
                 env = (precip_monthly = parent(climate.precip[i, j, :]), 
@@ -654,7 +651,7 @@ run_TREED_functional_diversity_sampling = function(traits_end, climate, H_range,
                     Pave_optim = traits_end.Pave_optim[i, j])
 
                     tr_complete = plant_allometry(tr = tr, par = pars2)
-                    GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, par = pars2) # For now I use the same procedure for lambda as in optimization - is more consistent! 
+                    GPP_output = GPP_function_for_optimization(env = env, tr = tr_complete, par = pars2)
                     R_maintenance_output = R_maintenance_function(env = env, tr = tr_complete, par = pars2, GPP_out = GPP_output)
                     NPP_output = calc_NPP(GPP_out = GPP_output, R_maintenance = R_maintenance_output, par = pars2)
                     C_turnover_total_output = C_turnover_function(env = env, tr = tr_complete, par = pars2)
@@ -695,13 +692,6 @@ run_TREED_richness_assessment = function(functional_diversity_record, vegetation
     habitable[habitable.>=0] .= 1
 
     # Define habitat classes 
-    # Second attempt only considering biological characteristics: 
-    # seasonality = 0-0.5, 0.5-1
-    # H = 0-5, 5-10, 10-20, 20-30, 30-40, >40 
-    # C_leaf = 0-500, 500-1000, 1000-1500, 1500-2000, >2000
-    # a_ll = 0-0.5, 0.5-1, 1-2, 2-3, 3-4, >4
-    # unproductive = NPP < 0
-
     H_classes = [range(0, stop=prevfloat(5.0), length=2), range(5, stop=prevfloat(10.0), length=2), range(10, stop=prevfloat(20.0), length=2), range(20, stop=prevfloat(30.0), length=2), range(30, stop=prevfloat(40.0), length=2), range(40, stop=100, length=2)]
     a_ll_classes = [range(0, stop=prevfloat(0.5), length=2), range(0.5, stop=prevfloat(1.0), length=2), range(1, stop=prevfloat(2.0), length=2), range(2, stop=prevfloat(3.0), length=2), range(3, stop=prevfloat(4.0), length=2), range(4, stop=10, length=2)]
     C_leaf_classes = [range(0, stop=prevfloat(500.0), length=2), range(500, stop=prevfloat(1000.0), length=2), range(1000, stop=prevfloat(2000.0), length=2), range(2000, stop=prevfloat(3000.0), length=2), range(3000, stop=prevfloat(4000.0), length=2), range(4000, stop=10000, length=2)]
@@ -711,8 +701,7 @@ run_TREED_richness_assessment = function(functional_diversity_record, vegetation
 
     ##### 
     # Loop through every grid cell and assign a habitat class 1 to as many as there are classes
-    #####
-
+    ##### 
     habitat_class = deepcopy(habitable)
     habitat_class .= NaN
 
@@ -748,7 +737,6 @@ run_TREED_richness_assessment = function(functional_diversity_record, vegetation
     ##### 
     # Loop through every grid cell and calculated Diversity metrices
     #####
-
     window_size = RI_landscape_window # km: how large of a window size should be considered in the metric calculation? 
     gamma_EH_collection = deepcopy(habitable)
     gamma_GI_collection = deepcopy(habitable)

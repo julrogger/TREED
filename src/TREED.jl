@@ -28,6 +28,7 @@ include("./TREEDsteadystep.jl")
 export raster_area
 export area_weighted_average
 export daylength_calculation
+export get_env_tr_par
 include("./TREED_auxiliary.jl")
 
 

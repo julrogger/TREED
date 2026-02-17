@@ -7,73 +7,74 @@
 
 
 ### Plant allometry 
-plant_allometry = function(; tr, par)
+plant_allometry = function (; tr, par)
 
-    D = (tr.H / par.k_allom2)^(1 / par.k_allom3)
+  D = (tr.H / par.k_allom2)^(1 / par.k_allom3)
 
-    CA = par.k_allom1 * (D^par.k_rp)
-    CA = min(max(CA, par.CA_min),par.CA_max)
+  CA = par.k_allom1 * (D^par.k_rp)
+  CA = min(max(CA, par.CA_min), par.CA_max)
 
-    SLA =  (2e-4) * (1/0.4763) * 10^(2.25 - 0.5*log10(tr.a_ll * 12)) # Intermediate of new version Schaphoff.
+  SLA = (2e-4) * (1 / 0.4763) * 10^(2.25 - 0.5 * log10(tr.a_ll * 12)) # Intermediate of new version Schaphoff.
 
-    SA = (tr.C_leaf * SLA)/par.k_la_sa
-    
-    LAI = (tr.C_leaf * SLA)/CA
-    
-    # Account for differences in light interception depending on SLA/a_ll, ranges as in Schaphoff et al. and Zhang et al.
-    light_extinction_coefficient = 0.6 - (0.2/5) * tr.a_ll
+  SA = (tr.C_leaf * SLA) / par.k_la_sa
 
-    # Alternative non-continuous version: 
-    # if tr.a_ll > 4
-    #   light_extinction_coefficient = 0.4
-    # elseif tr.seasonality == 0 && tr.a_ll < 1
-    #   light_extinction_coefficient = 0.6
-    # else
-    #   light_extinction_coefficient = 0.5
-    # end
-    
-    FPC = (1-exp(-light_extinction_coefficient*LAI))
-    
-    C_sapwood = SA * tr.H * par.WD_sapwood # I calculate C_sapwood even if SA > total C, represents structural C in that case
+  LAI = (tr.C_leaf * SLA) / CA
 
-    C_stem_total = par.k_density_intercept * ((CA * tr.H)^par.k_power) * 0.47 # g of C per individual
-    
-    if C_sapwood >= C_stem_total
-        # C_sapwood = C_stem_total
-        C_sapwood = C_sapwood
-        C_heartwood = 0
-    else  # For big enough tree assuming sapwood remains cylindrical and rest forms a cone (or something similar) around it
-        C_sapwood = C_sapwood
-        C_heartwood = C_stem_total - C_sapwood
-    end
-    
-    C_fineroot = tr.C_leaf * tr.r_s_r
+  # Account for differences in light interception depending on SLA/a_ll, ranges as in Schaphoff et al. and Zhang et al.
+  light_extinction_coefficient = 0.6 - (0.2 / 5) * tr.a_ll
 
-    C_coarseroot = (C_heartwood + C_sapwood) * 0.25 * tr.r_s_r # C coarseroot scales with woody C, only as soon as tree gets big enuogh to have D > SA
+  # Alternative non-continuous version: 
+  # if tr.a_ll > 4
+  #   light_extinction_coefficient = 0.4
+  # elseif tr.seasonality == 0 && tr.a_ll < 1
+  #   light_extinction_coefficient = 0.6
+  # else
+  #   light_extinction_coefficient = 0.5
+  # end
 
-    tr = (
-    C_leaf = tr.C_leaf,
-    r_s_r = tr.r_s_r,
-    a_ll = tr.a_ll,
-    H = tr.H,
-    seasonality = tr.seasonality,
-    Tave_optim = tr.Tave_optim,
-    Tmax_optim = tr.Tmax_optim,
-    Tmin_optim = tr.Tmin_optim,
-    Pave_optim = tr.Pave_optim,
-    C_fineroot = C_fineroot,
-    C_sapwood = C_sapwood,
-    C_coarseroot = C_coarseroot,
-    C_heartwood = C_heartwood,
-    D = D,
-    CA = CA,
-    SLA = SLA,
-    SA = SA,
-    LAI = LAI,
-    FPC = FPC
-    )
+  FPC = (1 - exp(-light_extinction_coefficient * LAI))
 
-    return(tr)
+  C_sapwood = SA * tr.H * par.WD_sapwood # I calculate C_sapwood even if SA > total C, represents structural C in that case
+
+  C_stem_total = par.k_density_intercept * ((CA * tr.H)^par.k_power) * 0.47 # g of C per individual
+
+  if C_sapwood >= C_stem_total
+    # C_sapwood = C_stem_total
+    C_sapwood = C_sapwood
+    C_heartwood = 0
+  else  # For big enough tree assuming sapwood remains cylindrical and rest forms a cone (or something similar) around it
+    C_sapwood = C_sapwood
+    C_heartwood = C_stem_total - C_sapwood
+  end
+
+  C_fineroot = tr.C_leaf * tr.r_s_r
+
+  C_coarseroot = (C_heartwood + C_sapwood) * 0.25 * tr.r_s_r # C coarseroot scales with woody C, only as soon as tree gets big enuogh to have D > SA
+
+  tr = (
+    C_leaf=tr.C_leaf,
+    r_s_r=tr.r_s_r,
+    a_ll=tr.a_ll,
+    H=tr.H,
+    seasonality=tr.seasonality,
+    Tave_optim=tr.Tave_optim,
+    Tmax_optim=tr.Tmax_optim,
+    Tmin_optim=tr.Tmin_optim,
+    Pave_optim=tr.Pave_optim,
+    C_fineroot=C_fineroot,
+    C_sapwood=C_sapwood,
+    C_coarseroot=C_coarseroot,
+    C_heartwood=C_heartwood,
+    D=D,
+    CA=CA,
+    SLA=SLA,
+    SA=SA,
+    LAI=LAI,
+    FPC=FPC
+  )
+
+  return (tr)
+  
 end
 
 ### GPP function for optimizaiton - avoid bisection for lambda & AET calculation
@@ -130,8 +131,6 @@ GPP_function_for_optimization = function(; env, tr, par)
   ############# Maximum potential photosynthesis only light and rubisco limited, no water limitation
   # Calculate Vm with maximum p_i/lambdamc3, not actual lambda (see Schaphoff)
   # Currently only low tairerature limitation, following Haxeltine & Prentice 1996, could also be trait dependent
-  # f_tair_limit_low = 1/(1 + exp(0.2*(15-env.tair_monthly)))
-  # f_tair_limit_low = 1/(1 + exp(0.35*(13.5-env.tair_monthly)))
   f_tair_limit_low = 1 ./ (1 .+ exp.( 0.25 .* (12 .- env.tair_monthly)))
   f_tair_limit_crit = 1 .- (1 ./ (1 .+ exp.(.-(env.tair_monthly .- 40.85))))
   f_tair_limit = f_tair_limit_low .* f_tair_limit_crit
@@ -392,7 +391,7 @@ R_maintenance_function =  function(; env, tr, par, GPP_out)
   r_sapwood =  sum((par.r   .*  par.k  .*  acclimation_factor  .*  (tr.C_sapwood ./ par.cn_wood)  .*  g_T)  .*  par.month_days)  ./  tr.CA
   r_fineroot =  sum((par.r  .*  par.k  .*  acclimation_factor  .*  (tr.C_fineroot ./ par.cn_root)  .*  g_T_soil)  .*  par.month_days)  ./  tr.CA
   
-  # Structural carbon pools  .-  no/reduced respiration
+  # Structural carbon pools  -  no/reduced respiration
   r_heartwood =  sum((par.r   .*  par.k  .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_heartwood ./ par.cn_wood)  .*  g_T)  .*  par.month_days)  ./  tr.CA
   r_coarseroot =  sum((par.r  .*  par.k .*  (0 ./ 15) .*  acclimation_factor  .*  (tr.C_coarseroot ./ par.cn_root)  .*  g_T_soil)  .*  par.month_days)  ./  tr.CA
   

@@ -51,3 +51,48 @@ daylength_calculation = function(latitude, DOI)
   return daylength 
 
 end
+
+
+### Get env, tr, par for debugging from output
+### Afterwards, it is possible to run physiological functions: 
+
+# e.g.: sample_out = get_env_tr_par(output=TREED_output, tair=tair, precip=precip, clt=clt, rsds=rsds, topo=topo, CO2=360.0, res=0.5, lon=-100, lat=40)
+# tr = TREED.plant_allometry(tr=sample_out.tr, par=sample_out.pars)
+# @enter TREED.GPP_function_for_optimization(env=sample_out.env, tr=tr, par=sample_out.pars)
+
+get_env_tr_par = function(; output, tair, precip, clt, rsds, topo, CO2, res, lon, lat)
+
+  climate = create_TREED_climate_input(tair, precip, clt, rsds, topo, CO2, res)
+
+  # Extract current traits at location 
+  tr = (H=output.H[Near(lon), Near(lat)],
+    a_ll=output.a_ll[Near(lon), Near(lat)],
+    C_leaf=output.C_leaf[Near(lon), Near(lat)],
+    seasonality=output.seasonality[Near(lon), Near(lat)],
+    r_s_r=output.r_s_r[Near(lon), Near(lat)],
+    Tave_optim=output.Tave_optim[Near(lon), Near(lat)],
+    Tmax_optim=output.Tmax_optim[Near(lon), Near(lat)],
+    Tmin_optim=output.Tmin_optim[Near(lon), Near(lat)],
+    Pave_optim=0
+  )
+
+  # Extract climate at location 
+  env = (precip_monthly=parent(climate.precip[Near(lon), Near(lat), :]),
+    tair_monthly=parent(climate.tair[Near(lon), Near(lat), :]),
+    tair_annual=mean(parent(climate.tair[Near(lon), Near(lat), :])),
+    rsds_monthly=parent(climate.rsds[Near(lon), Near(lat), :]),
+    rss_monthly=parent(climate.rss[Near(lon), Near(lat), :]),
+    rls_monthly=parent(climate.rls[Near(lon), Near(lat), :]),
+    daylength=parent(climate.daylength[Near(lon), Near(lat), :]),
+    CO2_ppm=climate.CO2_ppm,
+    precip_annual=mean(parent(climate.precip[Near(lon), Near(lat), :]))
+  )
+
+  sample_out = (
+  tr = tr,
+  env = env,
+  pars = pars
+  )
+
+
+end
