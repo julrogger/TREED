@@ -38,10 +38,10 @@ topo = Raster("./case_study_1_present_day_validation/present_day_climate_topo_in
 # Additional arguments needed:
 res = 0.5 # Target resolution
 CO2 = 360.0 # Current atmospheric CO2, transferred to vegetation model
-FDsampling = true # Assessment of functional diversity  
-RIsampling = true # Assessment of species richness potential ("diversity index")
+FDsampling = false # Assessment of functional diversity  
+RIsampling = false # Assessment of species richness potential ("diversity index")
 RI_landscape_window = 300.0 # Width of the landscape window used for the diversity assessment (in km)
-outputdir = "./case_study_1_present_day_validation/TREED_present_output"
+outputdir = "./case_study_1_present_day_validation/TREED_present_output/test"
 
 # Run TREED for the present 
 TREED_output = TREEDsteadystep(tair=tair, precip=precip, clt=clt, rsds=rsds, topo=topo, CO2=CO2, res=res, FDsampling=FDsampling, RIsampling=RIsampling, RI_landscape_window=RI_landscape_window, outputdir=outputdir)
@@ -438,10 +438,6 @@ dpi=330, name="./case_study_1_present_day_validation/plots/phenology_all.png", s
 
 
 
-
-
-
-
 # Additional plot for methods: illstruate SLA~a_ll and k~a_ll relationship 
 a_ll = 0.001:0.01:5
 SLA_model = (2e-4) .* (1/0.4763) .* 10 .^(2.25 .- 0.5 .* log10.(a_ll .* 12))
@@ -454,5 +450,3 @@ GMT.plot!(a_ll, SLA_LPJ_needle, linecolor=:darkgreen, lw=1.5, legend=(label="LPJ
 GMT.plot!(a_ll, SLA_LPJ_broad, linecolor=:lightred, lw=1.5, legend=(label="LPJ broad", pos=:TR, box=:none,))
 GMT.plot!(a_ll, SLA_model, linecolor=:black, lw=1.5, legend=(label="Model", pos=:TR, box=:none,), 
 dpi=700, name="./case_study_1_present_day_validation/plots/all_SLA_relationship.png")
-
-

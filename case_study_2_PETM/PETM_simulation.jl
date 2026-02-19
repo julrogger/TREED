@@ -96,22 +96,29 @@ end
 
 
 # Steady state vegetation height 
+topography = TREED_output_pre.topography
+
 H_cpt = makecpt(cmap=:bamako, range=(0, 50), inverse=true, overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="0/59/71", COLOR_FOREGROUND="255/229/172"))
 grdimage(convert_raster_to_GMT_grid(TREED_output_pre.H), projection=:Mollweide, theme="A2xy",
-    cmap=H_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=10, par=(FONT_ANNOT=7,))
+    cmap=H_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"))
+    grdcontour!(convert_raster_to_GMT_grid(topography), projection=:Mollweide, levels=[0], pen="0.08p,black")
 grdimage!(convert_raster_to_GMT_grid(TREED_output_peak.H), projection=:Mollweide, theme="A2xy",
-    cmap=H_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=10, par=(FONT_ANNOT=7,), xshift=10.25)
-colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="H (m)"),par=(FONT_ANNOT_PRIMARY=12,))
-text!("(a)",frame=:none,region=(0,10,0,10), xshift=-10.25, proj=:linear, x=0, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
-text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=6.75, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
+    cmap=H_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=8)
+    grdcontour!(convert_raster_to_GMT_grid(topography), projection=:Mollweide, levels=[0], pen="0.08p,black")
+colorbar!(pos=(achor=:RM,), size=(4,0.2), frame=(annot=:auto, ticks=:auto, xlabel="H (m)"),par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+
 
 NPP_cpt = makecpt(cmap=:plasma, range=(0, 1300), overrule_bg=true, par=(COLOR_NAN=230, COLOR_BACKGROUND="15/7/136", COLOR_FOREGROUND="240/248/35"))
 grdimage!(convert_raster_to_GMT_grid(TREED_output_pre.NPP), projection=:Mollweide, theme="A2xy",
-    cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=10, par=(FONT_ANNOT=7,), yshift=-6.25)
+    cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=60,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"),xshift=-8, yshift=-4.5)
+    grdcontour!(convert_raster_to_GMT_grid(topography), projection=:Mollweide, levels=[0], pen="0.08p,black")
 grdimage!(convert_raster_to_GMT_grid(TREED_output_peak.NPP), projection=:Mollweide, theme="A2xy",
-    cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=10, par=(FONT_ANNOT=7,), xshift=10.25)
-colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="NPP (g C m@+-2@+)"),par=(FONT_ANNOT_PRIMARY=12,))
-text!("(c)",frame=:none,region=(0,10,0,10), xshift=-10.25, proj=:linear, x=0, y=5.0, noclip=true ,font=(10,"Helvetica",:black)) 
-text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=6.75, y=5.0, noclip=true ,font=(10,"Helvetica",:black), 
-dpi=700, name="./case_study_2_PETM/plots/PETM_pre_peak_steady_state.png") 
+    cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=8)
+    grdcontour!(convert_raster_to_GMT_grid(topography), projection=:Mollweide, levels=[0], pen="0.08p,black")
+colorbar!(pos=(achor=:RM,), size=(4,0.2), frame=(annot=:auto, ticks=:auto, xlabel="NPP (g C m@+-2@+)"),par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+text!("(a)",frame=:none,region=(0,10,0,10), proj=:linear, x=-5.5, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=0, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(c)",frame=:none,region=(0,10,0,10), proj=:linear, x=-5.5, y=4, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=0, y=4, noclip=true ,font=(10,"Helvetica",:black), 
+dpi=330, name="./case_study_2_PETM/plots/PETM_pre_peak_steady_state.png", show=true) 
 
