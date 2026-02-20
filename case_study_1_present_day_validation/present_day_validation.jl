@@ -38,10 +38,10 @@ topo = Raster("./case_study_1_present_day_validation/present_day_climate_topo_in
 # Additional arguments needed:
 res = 0.5 # Target resolution
 CO2 = 360.0 # Current atmospheric CO2, transferred to vegetation model
-FDsampling = false # Assessment of functional diversity  
-RIsampling = false # Assessment of species richness potential ("diversity index")
+FDsampling = true # Assessment of functional diversity  
+RIsampling = true # Assessment of species richness potential ("diversity index")
 RI_landscape_window = 300.0 # Width of the landscape window used for the diversity assessment (in km)
-outputdir = "./case_study_1_present_day_validation/TREED_present_output/test"
+outputdir = "./case_study_1_present_day_validation/TREED_present_output"
 
 # Run TREED for the present 
 TREED_output = TREEDsteadystep(tair=tair, precip=precip, clt=clt, rsds=rsds, topo=topo, CO2=CO2, res=res, FDsampling=FDsampling, RIsampling=RIsampling, RI_landscape_window=RI_landscape_window, outputdir=outputdir)
@@ -121,15 +121,6 @@ convert_raster_to_GMT_grid = function(raster)
     matrix_xyz = Matrix(data_xyz)
     GMT_grd = xyz2grd(matrix_xyz, limits=(minimum(matrix_xyz[:,1]), maximum(matrix_xyz[:,1]), minimum(matrix_xyz[:,2]), maximum(matrix_xyz[:,2])), inc=increment)
     return(GMT_grd)
-end
-
-nan_mean = function(vec)
-    mean(filter(!isnan, vec))
-end
-
-# Raster needs to be structured properly, parent with latitude in columns
-lat_nan_mean = function(raster)
-    nan_mean.(eachcol(parent(raster)))
 end
 
 ########## Comparison fluxes 

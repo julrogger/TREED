@@ -57,8 +57,6 @@ TREED_output = TREEDnonsteadycontinuous(tairvec=tairvec, precipvec=precipvec, cl
 
 
 
-
-
 ###########################################################
 ########## PETM experiments for step change in CO2
 
@@ -573,17 +571,103 @@ dpi=330, name="./case_study_3_ecoevolutionary_lags/plots/evolutionary_lags_sensi
 
 
 
+#### Drivers of the productivity loss for an evolutionary lags simulations (at higher resolution)
+# Construct landscape/environment to which simulation will be applied
+tairvec = vcat(repeat([tair_pre], 5), repeat([tair_peak], 15));
+precipvec = vcat(repeat([precip_pre], 5), repeat([precip_peak], 15));
+cltvec = vcat(repeat([clt_pre], 5), repeat([clt_peak], 15));
+rsdsvec = vcat(repeat([rsds_pre], 5), repeat([rsds_peak], 15));
+CO2vec = vcat(repeat([680], 5), repeat([1590], 15));
+topovec = repeat([topo], 20);
+
+
+############
+# Experiment 18: intermediate evolution, intermediate dispersal
+res = 2 # Target resolution
+evorate = 0.1 # Rate of trait evolution from current to optimum 
+startinsteady = true # Initialize the model at the first time step in optimum state 
+dispersal = 400. # Dispersal rate in km (radius)
+outputdir = "./case_study_3_ecoevolutionary_lags/TREED_PETM_lags_output_interm_evo_interm_dispersal_2degres"
+
+# Run TREED 
+TREED_output = TREED.TREEDnonsteadycontinuous(tairvec=tairvec, precipvec=precipvec, cltvec=cltvec, rsdsvec=rsdsvec, topovec=topovec, CO2vec=CO2vec, evorate=evorate, startinsteady=startinsteady, dispersal=dispersal, res=res, outputdir=outputdir)
+
+NPP_exp18 = Vector()
+for t=1:20
+    out = RasterStack(string("./case_study_3_ecoevolutionary_lags/TREED_PETM_lags_output_interm_evo_interm_dispersal_2degres/TREED_output_timestep_",t,".nc"))
+    plot=Plots.plot(out.H)
+    display(plot)
+    push!(NPP_exp18, sum(replace!(out.NPP .* TREED.raster_area(out.NPP) .* 1e+6, NaN => 0)) ./ 1e+15)
+end
+Plots.plot(NPP_exp18)
+
+start_out = RasterStack("case_study_3_ecoevolutionary_lags/TREED_PETM_lags_output_interm_evo_interm_dispersal_2degres/TREED_output_timestep_1.nc")
+mid_out = RasterStack("case_study_3_ecoevolutionary_lags/TREED_PETM_lags_output_interm_evo_interm_dispersal_2degres/TREED_output_timestep_9.nc")
+
+
+# Plot delta T, delta P, f_temp, niche_stress
+delta_T = mean(tair_peak, dims=Ti) .- mean(tair_pre, dims=Ti)
+delta_precip = (mean(precip_peak, dims=Ti) .- mean(precip_pre, dims=Ti)) .* (60 * 60 * 24 * 365 * 1000) # m/s to mm/year
+
+max_T = maximum(tair_peak, dims=Ti) .- 273.15
+max_temp_stress = resample(max_T; to=mid_out.Tmax_optim) .- mid_out.Tmax_optim
+max_temp_stress[max_temp_stress .< 0] .= 0
+
+mean_T = mean(tair_peak, dims=Ti) .- 273.15
+mean_temp_stress = resample(mean_T; to=mid_out.Tave_optim) .- mid_out.Tave_optim
+
+heat_stress = ( 1 .- exp.(-0.02 .* (max_temp_stress.^2)) ) .* 100 # heat stress induced productivity loss
+mean_stress = ( 1 .- exp.(-0.02 .* (mean_temp_stress.^2)) ) .* 100 # stress due to mean temperature change
+
+# combined stress 
+combined_stress = cat(mean_stress, heat_stress, dims=Ti([1, 2]))
+combined_stress = maximum(combined_stress, dims=Ti)
+
+# average photosynthetic limitation (considering mean annual temperature as average) 
+f_tair_limit_low = 1 ./ (1 .+ exp.( 0.25 .* (12 .- mean_T)))
+f_tair_limit_crit = 1 .- (1 ./ (1 .+ exp.(.-(mean_T .- 40.85))))
+f_tair_limit = f_tair_limit_low .* f_tair_limit_crit
+
+
+# Make plots of different limitations: 
+
+# Helper function to make transfer from Raster to GMT grid
+convert_raster_to_GMT_grid = function(raster)
+    increment = step(lookup(raster, X))
+    raster = replace_missing(raster, NaN)
+    data_xyz = DataFrame(raster)
+    matrix_xyz = Matrix(data_xyz)
+    GMT_grd = xyz2grd(matrix_xyz, limits=(minimum(matrix_xyz[:,1]), maximum(matrix_xyz[:,1]), minimum(matrix_xyz[:,2]), maximum(matrix_xyz[:,2])), inc=increment)
+    return(GMT_grd)
+end
 
 
 
+delta_T_cpt = makecpt(cmap=:inferno, range=(0, 12),  continuous=true, overrule_bg=true, par=(COLOR_NAN=235,))
+grdimage(convert_raster_to_GMT_grid(delta_T[Ti=1]), cmap=delta_T_cpt, projection=:Mollweide, theme="A2xy",
+        yaxis=(annot=60, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"))
+    grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
+    colorbar!(xlabel="@~D@~ Temperature (@.C)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
 
+delta_precip_cpt = makecpt(cmap=:roma, range=(-500, 500),  continuous=true, overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="126/23/0", COLOR_FOREGROUND="5/51/153"))
+grdimage!(convert_raster_to_GMT_grid(delta_precip[Ti=1]), cmap=delta_precip_cpt, projection=:Mollweide, theme="A2xy",
+        yaxis=(annot=0, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=9)
+    grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
+    colorbar!(xlabel="@~D@~ Precipitation (mm year@+-1@+)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
 
+ftemp_cpt = makecpt(cmap=:turku, range=(0, 1),  continuous=true, overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="126/23/0", COLOR_FOREGROUND="5/51/153"))
+grdimage!(convert_raster_to_GMT_grid(f_tair_limit[Ti=1]), cmap=ftemp_cpt, projection=:Mollweide, theme="A2xy",
+        yaxis=(annot=60, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=-9, yshift=-4.5)
+    grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
+    colorbar!(xlabel="f@-temp@- (-)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
 
-
-
-
-
-
-
-
-
+heatstress_cpt = makecpt(cmap=:lajolla, range=(-70, 0),  continuous=true, overrule_bg=true, par=(COLOR_NAN=235,))
+grdimage!(convert_raster_to_GMT_grid((-1) .* heat_stress[Ti=1]), cmap=heatstress_cpt, projection=:Mollweide, theme="A2xy",
+        yaxis=(annot=0, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=9)
+    grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
+    colorbar!(xlabel="@~F@~@-heat@- (%)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+text!("(a)",frame=:none,region=(0,10,0,10), proj=:linear, x=-6, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=0, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(c)",frame=:none,region=(0,10,0,10), proj=:linear, x=-6, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=0, y=3.75, noclip=true ,font=(10,"Helvetica",:black), 
+dpi=330, name="./case_study_3_ecoevolutionary_lags/plots/stress_analysis_intermediate_scenario.png", show=true) 

@@ -1,11 +1,11 @@
 # GMT 6 Session common arguments shelf
 BEGIN GMT 6.7.0
-B	ay+l x+lTimestepWSrt
-J	X
+B	ax+l@~F@~@-heat@- (%)WSrt
+J	W
 JW	W7.25
-JX	X8/7
-R	0/10/0/10
+JX	X15c/10c
+R	-179.875/179.875/-89.875/89.875
 X	9
-Y	-8
-@L	37
+Y	-4.5
+@L	12
 END
