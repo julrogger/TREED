@@ -518,7 +518,7 @@ data_base_scenarios = DataFrame(time = 1:20, NPP1 = NPP_exp1, NPP2 = NPP_exp2, N
 data_base_scenarios = convert.(Float64, data_base_scenarios)
 
 GMT.basemap(projection=:linear, region=(1, 20, 35, 119), figsize=(8, 7), theme=("A2xy"), 
-xlabel="", ylabel="Total NPP (Pg C year@+-1@+)", par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"))
+xlabel="", ylabel="Total NPP (Pg C year@+-1@+)", par=(FONT_LABEL=8.5, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"))
 GMT.plot!(data_base_scenarios.time, data_base_scenarios.NPP1, pen=(4,:darkred), legend=(label="Evolution @~a@~ = 0.01, dispersal 600 km", pos=:TL, box=:none))
 GMT.plot!(data_base_scenarios.time, data_base_scenarios.NPP2, pen=(4,:darkblue), legend=(label="Evolution @~a@~ = 0.75, dispersal 200 km", pos=:TL, box=:none))
 GMT.plot!(data_base_scenarios.time, data_base_scenarios.NPP3, pen=(4,:black), legend=(label="Evolution @~a@~ = 0.1, dispersal 400 km", pos=:TL, box=:none))
@@ -529,7 +529,7 @@ data_nichebreadth = DataFrame(time = 1:20, NPP4 = NPP_exp4, NPP5 = NPP_exp5, NPP
 data_nichebreadth = convert.(Float64, data_nichebreadth)
 
 GMT.basemap!(projection=:linear, region=(1, 20, 10, 105), figsize=(8, 7), theme=("A2xy"), 
-xlabel="", ylabel=" ", par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"), xshift=9)
+xlabel="", ylabel=" ", par=(FONT_LABEL=8.5, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"), xshift=9)
 GMT.plot!(data_nichebreadth.time, data_nichebreadth.NPP4, pen=(4,"253/231/37"), legend=(label="k=0", pos=:BR, box=:none,))
 GMT.plot!(data_nichebreadth.time, data_nichebreadth.NPP5, pen=(4,"94/201/98"), legend=(label="k=0.02", pos=:BR, box=:none,))
 GMT.plot!(data_nichebreadth.time, data_nichebreadth.NPP6, pen=(4,"33/145/140"), legend=(label="k=0.04", pos=:BR, box=:none,))
@@ -543,7 +543,7 @@ data_dispersal = DataFrame(time = 1:20, NPP9 = NPP_exp9, NPP10 = NPP_exp10, NPP1
 data_dispersal = convert.(Float64, data_dispersal)
 
 GMT.basemap!(projection=:linear, region=(1, 20, 0, 103), figsize=(8, 7), theme=("A2xy"), 
-xlabel="Timestep", ylabel="Total NPP (Pg C year@+-1@+)", par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"), xshift=-9, yshift=-8)
+xlabel="Timestep", ylabel="Total NPP (Pg C year@+-1@+)", par=(FONT_LABEL=8.5, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"), xshift=-9, yshift=-8)
 GMT.plot!(data_dispersal.time, data_dispersal.NPP9, pen=(4,"252/253/191"), legend=(label="dispersal=0 km", pos=:RM, box=:none,))
 GMT.plot!(data_dispersal.time, data_dispersal.NPP10, pen=(4,"252/137/97"), legend=(label="dispersal=200 km", pos=:RM, box=:none,))
 GMT.plot!(data_dispersal.time, data_dispersal.NPP11, pen=(4,"183/55/121"), legend=(label="dispersal=400 km", pos=:RM, box=:none,))
@@ -558,7 +558,7 @@ data_warming = DataFrame(time = 1:20, NPP14 = NPP_exp14, NPP15 = NPP_exp15, NPP1
 data_warming = convert.(Float64, data_warming)
 
 GMT.basemap!(projection=:linear, region=(1, 20, 40, 105), figsize=(8, 7), theme=("A2xy"), 
-xlabel="Timestep", ylabel=" ", par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"), xshift=9)
+xlabel="Timestep", ylabel=" ", par=(FONT_LABEL=8.5, FONT_ANNOT_PRIMARY=7, MAP_FRAME_PEN="0.2p"), xshift=9)
 GMT.plot!(data_warming.time, data_warming.NPP14, pen=(4,"254/230/206"), legend=(label="Land warming ~ 2@~\\260@~C", pos=:BR, box=:none,))
 GMT.plot!(data_warming.time, data_warming.NPP15, pen=(4,"253/174/107"), legend=(label="Land warming ~ 4@~\\260@~C", pos=:BR, box=:none,))
 GMT.plot!(data_warming.time, data_warming.NPP16, pen=(4,"230/85/13"), legend=(label="Land warming ~ 6@~\\260@~C", pos=:BR, box=:none,))
@@ -566,6 +566,13 @@ GMT.plot!(data_warming.time, data_warming.NPP17, pen=(4, "166/54/3"), legend=(la
 text!("d)",frame=:none,region=(0,10,0,10), proj=:linear, x=-0.5, y=10.4, noclip=true ,font=(10,"Helvetica",:black))
 text!("@~a@~ = 0.01, k = 0.02, dispersal = 600 km",frame=:none,region=(0,10,0,10), proj=:linear, x=4, y=9.5, noclip=true ,font=(9,"Helvetica",:black), 
 dpi=330, name="./case_study_3_ecoevolutionary_lags/plots/evolutionary_lags_sensitivities.png", show=true)
+
+
+
+
+
+
+
 
 
 
@@ -647,25 +654,25 @@ delta_T_cpt = makecpt(cmap=:inferno, range=(0, 12),  continuous=true, overrule_b
 grdimage(convert_raster_to_GMT_grid(delta_T[Ti=1]), cmap=delta_T_cpt, projection=:Mollweide, theme="A2xy",
         yaxis=(annot=60, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"))
     grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
-    colorbar!(xlabel="@~D@~ Temperature (@.C)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+    colorbar!(xlabel="@~D@~ Temperature (@.C)", par=(FONT_LABEL=18, FONT_ANNOT_PRIMARY=14))
 
 delta_precip_cpt = makecpt(cmap=:roma, range=(-500, 500),  continuous=true, overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="126/23/0", COLOR_FOREGROUND="5/51/153"))
 grdimage!(convert_raster_to_GMT_grid(delta_precip[Ti=1]), cmap=delta_precip_cpt, projection=:Mollweide, theme="A2xy",
         yaxis=(annot=0, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=9)
     grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
-    colorbar!(xlabel="@~D@~ Precipitation (mm year@+-1@+)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+    colorbar!(xlabel="@~D@~ Precipitation (mm year@+-1@+)", par=(FONT_LABEL=18, FONT_ANNOT_PRIMARY=14))
 
 ftemp_cpt = makecpt(cmap=:turku, range=(0, 1),  continuous=true, overrule_bg=true, par=(COLOR_NAN=235,COLOR_BACKGROUND="126/23/0", COLOR_FOREGROUND="5/51/153"))
 grdimage!(convert_raster_to_GMT_grid(f_tair_limit[Ti=1]), cmap=ftemp_cpt, projection=:Mollweide, theme="A2xy",
         yaxis=(annot=60, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=-9, yshift=-4.5)
     grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
-    colorbar!(xlabel="f@-temp@- (-)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+    colorbar!(xlabel="f@-temp@- (-)", par=(FONT_LABEL=20, FONT_ANNOT_PRIMARY=14))
 
 heatstress_cpt = makecpt(cmap=:lajolla, range=(-70, 0),  continuous=true, overrule_bg=true, par=(COLOR_NAN=235,))
 grdimage!(convert_raster_to_GMT_grid((-1) .* heat_stress[Ti=1]), cmap=heatstress_cpt, projection=:Mollweide, theme="A2xy",
         yaxis=(annot=0, ), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=9)
     grdcontour!(convert_raster_to_GMT_grid(topo), projection=:Mollweide, levels=[0], pen="0.08p,black")
-    colorbar!(xlabel="@~F@~@-heat@- (%)", par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+    colorbar!(xlabel="@~F@~@-heat@- (%)", par=(FONT_LABEL=20, FONT_ANNOT_PRIMARY=14))
 text!("(a)",frame=:none,region=(0,10,0,10), proj=:linear, x=-6, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=0, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(c)",frame=:none,region=(0,10,0,10), proj=:linear, x=-6, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 

@@ -105,7 +105,7 @@ grdimage(convert_raster_to_GMT_grid(TREED_output_pre.H), projection=:Mollweide, 
 grdimage!(convert_raster_to_GMT_grid(TREED_output_peak.H), projection=:Mollweide, theme="A2xy",
     cmap=H_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=8)
     grdcontour!(convert_raster_to_GMT_grid(topography), projection=:Mollweide, levels=[0], pen="0.08p,black")
-colorbar!(pos=(achor=:RM,), size=(4,0.2), frame=(annot=:auto, ticks=:auto, xlabel="H (m)"),par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="H (m)"),par=(FONT_LABEL=18, FONT_ANNOT_PRIMARY=14))
 
 
 NPP_cpt = makecpt(cmap=:plasma, range=(0, 1300), overrule_bg=true, par=(COLOR_NAN=230, COLOR_BACKGROUND="15/7/136", COLOR_FOREGROUND="240/248/35"))
@@ -115,7 +115,7 @@ grdimage!(convert_raster_to_GMT_grid(TREED_output_pre.NPP), projection=:Mollweid
 grdimage!(convert_raster_to_GMT_grid(TREED_output_peak.NPP), projection=:Mollweide, theme="A2xy",
     cmap=NPP_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=8)
     grdcontour!(convert_raster_to_GMT_grid(topography), projection=:Mollweide, levels=[0], pen="0.08p,black")
-colorbar!(pos=(achor=:RM,), size=(4,0.2), frame=(annot=:auto, ticks=:auto, xlabel="NPP (g C m@+-2@+)"),par=(FONT_LABEL=16, FONT_ANNOT_PRIMARY=12))
+colorbar!(pos=(achor=:RM,), frame=(annot=:auto, ticks=:auto, xlabel="NPP (g C m@+-2@+)"),par=(FONT_LABEL=18, FONT_ANNOT_PRIMARY=14))
 text!("(a)",frame=:none,region=(0,10,0,10), proj=:linear, x=-5.5, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=0, y=8, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(c)",frame=:none,region=(0,10,0,10), proj=:linear, x=-5.5, y=4, noclip=true ,font=(10,"Helvetica",:black)) 
