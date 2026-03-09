@@ -98,9 +98,9 @@ For more info, please also see ?TREEDsteadystep and the case studies.
 ### Credits: 
 
 
-This model depends strongly on the Raster.jl package (https://rafaqz.github.io/Rasters.jl/stable/), the DimensionalData.jl package (https://rafaqz.github.io/DimensionalData.jl/stable/). 
+This model depends strongly on the Rasters.jl package (https://rafaqz.github.io/Rasters.jl/stable/) and the DimensionalData.jl package (https://rafaqz.github.io/DimensionalData.jl/stable/). 
 
-Also credits to the GMT.jl (https://www.generic-mapping-tools.org/GMTjl_doc/) package used for plotting of the case study outputs. 
+Also big credits to the GMT.jl (https://www.generic-mapping-tools.org/GMTjl_doc/) package used for plotting of the case study outputs. 
 
 
 ### License: 
