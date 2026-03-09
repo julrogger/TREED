@@ -47,7 +47,7 @@ You can find the model code in the src directory.
 
 ### Case studies: 
 
-This repostiroy comes with three case study applications of the model, which can be used to get started with the model, or can be modified according to the user's interest. To reproduce the original case studies, climate input data can be downloaded from: https://doi.org/10.5281/zenodo.17777279. 
+This repostiroy comes with three case study applications of the model, which can be used to get started with the model, or can be modified according to the user's interest. To reproduce the original case studies, climate input data can be downloaded from: https://doi.org/10.5281/zenodo.17777278. 
 
 - Case study 1: Run the model one time step in steady state using present-day climate inputs for validation of simulated vegetation structures and fluxes.
 
