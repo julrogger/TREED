@@ -610,7 +610,7 @@ Plots.plot(NPP_exp18)
 
 start_out = RasterStack("case_study_3_ecoevolutionary_lags/TREED_PETM_lags_output_interm_evo_interm_dispersal_2degres/TREED_output_timestep_1.nc")
 mid_out = RasterStack("case_study_3_ecoevolutionary_lags/TREED_PETM_lags_output_interm_evo_interm_dispersal_2degres/TREED_output_timestep_9.nc")
-
+end_out = RasterStack("case_study_3_ecoevolutionary_lags/TREED_PETM_lags_output_interm_evo_interm_dispersal_2degres/TREED_output_timestep_20.nc")
 
 # Plot delta T, delta P, f_temp, niche_stress
 delta_T = mean(tair_peak, dims=Ti) .- mean(tair_pre, dims=Ti)

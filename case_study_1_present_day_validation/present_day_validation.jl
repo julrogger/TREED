@@ -141,7 +141,7 @@ grdimage!(convert_raster_to_GMT_grid(TREED_output.GPP .- GPP_ref), projection=:M
 text!("(a)",frame=:none,region=(0,10,0,10),x=-21, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("Model",frame=:none,region=(0,10,0,10),x=-19, y=4.5, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(b)",frame=:none,region=(0,10,0,10),x=-10, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 
-text!("Data",frame=:none,region=(0,10,0,10),x=-9, y=4.5, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("Observation",frame=:none,region=(0,10,0,10),x=-9, y=4.5, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(c)",frame=:none,region=(0,10,0,10),x=0.5, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 
 
 
@@ -201,7 +201,7 @@ grdimage!(convert_raster_to_GMT_grid(TREED_output.H .- H_ref), projection=:Mollw
 text!("(a)",frame=:none,region=(0,10,0,10),x=-21, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("Model",frame=:none,region=(0,10,0,10),x=-19, y=4.5, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(b)",frame=:none,region=(0,10,0,10),x=-10, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 
-text!("Data",frame=:none,region=(0,10,0,10),x=-9, y=4.5, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("Observation",frame=:none,region=(0,10,0,10),x=-9, y=4.5, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(c)",frame=:none,region=(0,10,0,10),x=0.5, y=3.75, noclip=true ,font=(10,"Helvetica",:black)) 
 
 AGB_model = ((TREED_output.C_leaf .+ TREED_output.C_heartwood .+ TREED_output.C_sapwood) ./ TREED_output.CA) .* (10000/1e+6) # in Mg C ha-1
@@ -251,8 +251,7 @@ show=true, dpi=330, name="./case_study_1_present_day_validation/plots/structure_
 ########## 1:1 plots structures
 
 # Height density plot $
-valid_index = .!isnan.(vec(TREED_output.H)) .&& .!isnan.(vec(H_ref))
-RMSE = sqrt(sum(filter(!isnan, vec(TREED_output.H .- H_ref).^2)) / length(vec(TREED_output.H .- H_ref)))
+RMSE = sqrt(mean(filter(!isnan, vec(TREED_output.H .- H_ref).^2)))
 D = binstats([vec(H_ref)[valid_index] convert.(Float64, vec(TREED_output.H)[valid_index])], inc=1.5, tiling=:hex, stats=:number)
 density_cpt=makecpt(cmap=:nuuk, reverse=true, continuous=true, range=(0, 200), par=(COLOR_BACKGROUND="5/89/140", COLOR_FOREGROUND="253/253/177"))
 GMT.plot(D, region=(0, 40, 0, 40), hexbin=true,colorbar=false, cmap=density_cpt, figsize=(6, 6), theme=("A2xy"),
@@ -265,8 +264,7 @@ GMT.text!(string("RMSE = ",round(RMSE,digits=2)," m"), x = 32, y = 2, font=7)
 
 AGB_model = ((TREED_output.C_leaf .+ TREED_output.C_heartwood .+ TREED_output.C_sapwood) ./ TREED_output.CA) .* (10000/1e+6) # in Mg C ha-1
 AGB_model[isnan.(AGB_model) .&& .!isnan.(TREED_output.H)] .= 0
-valid_index = .!isnan.(vec(AGB_model)) .&& .!isnan.(vec(AGB_ref))
-RMSE = sqrt(sum(filter(!isnan, vec(AGB_model .- AGB_ref).^2)) / length(vec(AGB_model .- AGB_ref)))
+RMSE = sqrt(mean(filter(!isnan, vec(AGB_model .- AGB_ref).^2)))
 D = binstats([vec(AGB_ref)[valid_index] convert.(Float64, vec(AGB_model)[valid_index])], inc=2.5, tiling=:hex, stats=:number)
 density_cpt=makecpt(cmap=:nuuk, reverse=true, continuous=true, range=(0, 70), par=(COLOR_BACKGROUND="5/89/140", COLOR_FOREGROUND="253/253/177"))
 GMT.plot!(D, region=(0, 150, 0, 150), hexbin=true,colorbar=false, cmap=density_cpt, figsize=(6, 6), theme=("A2xy"),
@@ -279,8 +277,7 @@ GMT.text!(string("RMSE = ",round(RMSE,digits=2)," Mg C ha@+-1@+"), x = 110, y = 
 
 BGB_model = ((TREED_output.C_coarseroot .+ TREED_output.C_fineroot) ./ TREED_output.CA) .* (10000/1e+6) # in Mg C ha-1
 BGB_model[isinf.(BGB_model) .&& .!isnan.(TREED_output.H)] .= 0
-valid_index = .!isnan.(vec(BGB_model)) .&& .!isnan.(vec(BGB_ref))
-RMSE = sqrt(sum(filter(!isnan, vec(BGB_model .- BGB_ref).^2)) / length(vec(BGB_model .- BGB_ref)))
+RMSE = sqrt(mean(filter(!isnan, vec(BGB_model .- BGB_ref).^2)))
 D = binstats([vec(BGB_ref)[valid_index] convert.(Float64, vec(BGB_model)[valid_index])], inc=1, tiling=:hex, stats=:number)
 density_cpt=makecpt(cmap=:nuuk, reverse=true, continuous=true, range=(0, 90), par=(COLOR_BACKGROUND="5/89/140", COLOR_FOREGROUND="253/253/177"))
 GMT.plot!(D, region=(0, 42, 0, 42), hexbin=true,colorbar=false, cmap=density_cpt, figsize=(6, 6), theme=("A2xy"),
@@ -296,8 +293,7 @@ GMT.text!("(d)", x = -8, y = 141, noclip=true, font=(10,"Helvetica",:black))
 
 
 ########## 1:1 plots fluxes
-valid_index = .!isnan.(vec(TREED_output.GPP)) .&& .!isnan.(vec(GPP_ref)) .&& (vec(GPP_ref) .> 0 .&& vec(TREED_output.GPP .> 0))
-RMSE = sqrt(sum(filter(!isnan, vec(TREED_output.GPP .- GPP_ref).^2)) / length(vec(TREED_output.GPP .- GPP_ref)))
+RMSE = sqrt(mean(filter(!isnan, vec(TREED_output.GPP .- GPP_ref).^2)))
 D = binstats([vec(GPP_ref)[valid_index] convert.(Float64, vec(TREED_output.GPP)[valid_index])], inc=50, tiling=:hex, stats=:number)
 density_cpt=makecpt(cmap=:nuuk, reverse=true, continuous=true, range=(0, 50), par=(COLOR_BACKGROUND="5/89/140", COLOR_FOREGROUND="253/253/177"))
 GMT.plot!(D, region=(0, 3000, 0, 3000), hexbin=true,colorbar=false, cmap=density_cpt, figsize=(6, 6), theme=("A2xy"),
@@ -308,8 +304,7 @@ colorbar!(pos=(position=(outside=true, anchor=:MR, offset=(0.25,-2), size=(2, 0.
 GMT.text!(string("RMSE = ",round(RMSE,digits=2)," g C m@+-2@+"), x = 2200, y = 180, font=7)
 
 
-valid_index = .!isnan.(vec(TREED_output.NPP)) .&& .!isnan.(vec(NPP_ref)) .&& (vec(NPP_ref) .> 0 .&& vec(TREED_output.NPP .> 0))
-RMSE = sqrt(sum(filter(!isnan, vec(TREED_output.NPP .- NPP_ref).^2)) / length(vec(TREED_output.NPP .- NPP_ref)))
+RMSE = sqrt(mean(filter(!isnan, vec(TREED_output.NPP .- NPP_ref).^2)))
 D = binstats([vec(NPP_ref)[valid_index] convert.(Float64, vec(TREED_output.NPP)[valid_index])], inc=25, tiling=:hex, stats=:number)
 density_cpt=makecpt(cmap=:nuuk, reverse=true, continuous=true, range=(0, 50), par=(COLOR_BACKGROUND="5/89/140", COLOR_FOREGROUND="253/253/177"))
 GMT.plot!(D, region=(0, 1800, 0, 1800), hexbin=true,colorbar=false, cmap=density_cpt, figsize=(6, 6), theme=("A2xy"),
@@ -319,9 +314,7 @@ GMT.plot!([0, 2000], [0, 2000], linecolor=:darkred, lw=0.8)
 colorbar!(pos=(position=(outside=true, anchor=:MR, offset=(0.25,-2), size=(2, 0.15), triangles=:f)), frame=(annot=:auto, ticks=:auto, xlabel="Count"),par=(FONT_ANNOT_PRIMARY=14,FONT_LABEL=16))
 GMT.text!(string("RMSE = ",round(RMSE,digits=2)," g C m@+-2@+"), x = 1380, y = 100, font=7)
 
-
-valid_index = .!isnan.(vec(TREED_output.AET)) .&& .!isnan.(vec(AET_ref)) .&& (vec(AET_ref) .> 0 .&& vec(TREED_output.AET .> 0))
-RMSE = sqrt(sum(filter(!isnan, vec(TREED_output.AET .- AET_ref).^2)) / length(vec(TREED_output.AET .- AET_ref)))
+RMSE = sqrt(mean(filter(!isnan, vec(TREED_output.AET .- AET_ref).^2)))
 D = binstats([vec(AET_ref)[valid_index] convert.(Float64, vec(TREED_output.AET)[valid_index])], inc=20, tiling=:hex, stats=:number)
 density_cpt=makecpt(cmap=:nuuk, reverse=true, continuous=true, range=(0, 40), par=(COLOR_BACKGROUND="5/89/140", COLOR_FOREGROUND="253/253/177"))
 GMT.plot!(D, region=(0, 1500, 0, 1500), hexbin=true,colorbar=false, cmap=density_cpt, figsize=(6, 6), theme=("A2xy"),
@@ -415,16 +408,16 @@ colorbar!(pos=(paper=true, anchor=(4,-0.2), size=(4,0.2), justify=:TC, horizonta
 
 a_ll_cpt = makecpt(cmap=:cork, hinge=1, range=(0, 5), overrule_bg=true, par=(COLOR_NAN=235, COLOR_BACKGROUND="56/102/149", COLOR_FOREGROUND="15/42/3"))
 grdimage!(convert_raster_to_GMT_grid(TREED_output.a_ll), projection=:Mollweide, theme="A2xy",
-    cmap=a_ll_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=8)
+    cmap=a_ll_cpt, xaxis=(annot=0,), yaxis=(annot=0,), figsize=7.25, par=(FONT_ANNOT=7, MAP_FRAME_PEN="0.2p"), xshift=9.5)
     grdcontour!(convert_raster_to_GMT_grid(TREED_output.topography), projection=:Mollweide, levels=[0], pen="0.08p,black")
 colorbar!(pos=(paper=true, anchor=(4,-0.2), size=(4,0.2), justify=:TC, horizontal=true), xlabel="Leaf longevity (years)",
 par=(FONT_ANNOT=12,))
-text!("(a)",frame=:none,region=(0,10,0,10), proj=:linear, x=-5.5, y=4, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(a)",frame=:none,region=(0,10,0,10), proj=:linear, x=-6, y=4, noclip=true ,font=(10,"Helvetica",:black)) 
 text!("(b)",frame=:none,region=(0,10,0,10), proj=:linear, x=-0.25, y=4, noclip=true ,font=(10,"Helvetica",:black))
 
-image!("./case_study_1_present_day_validation/plots/lma_comparison_model_data.png", yshift=-8, xshift=-17)
-text!("(c)",frame=:none,region=(0,10,0,10), proj=:linear, x=5.75, y=6.5, noclip=true ,font=(10,"Helvetica",:black)) 
-text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=11, y=6.5, noclip=true ,font=(10,"Helvetica",:black), 
+image!("./case_study_1_present_day_validation/plots/lma_comparison_model_data.png", yshift=-8, xshift=-19)
+text!("(c)",frame=:none,region=(0,10,0,10), proj=:linear, x=6.5, y=7, noclip=true ,font=(10,"Helvetica",:black)) 
+text!("(d)",frame=:none,region=(0,10,0,10), proj=:linear, x=12.5, y=7, noclip=true ,font=(10,"Helvetica",:black), 
 dpi=330, name="./case_study_1_present_day_validation/plots/phenology_all.png", show=true)
 
 
@@ -436,8 +429,8 @@ SLA_LPJ_needle = (2e-4) .* (1/0.4763) .* 10 .^(2.08 .- 0.4 .* log10.(a_ll .* 12)
 SLA_LPJ_broad = (2e-4) .* (1/0.4763) .* 10 .^(2.22 .- 0.4 .* log10.(a_ll .* 12))
 
 GMT.basemap(region=(0.001, 4.5, 0.009, 0.042), figsize=(6, 5), xlabel="a@-ll@- (years)", ylabel="SLA (m@+2@+ / g C)",
-theme=("A2xy"), par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=6,))
+theme=("A2xy"), par=(FONT_LABEL=7, FONT_ANNOT_PRIMARY=6, MAP_FRAME_PEN="0.2p"))
 GMT.plot!(a_ll, SLA_LPJ_needle, linecolor=:darkgreen, lw=1.5, legend=(label="LPJ needle", pos=:TR, box=:none,))
 GMT.plot!(a_ll, SLA_LPJ_broad, linecolor=:lightred, lw=1.5, legend=(label="LPJ broad", pos=:TR, box=:none,))
-GMT.plot!(a_ll, SLA_model, linecolor=:black, lw=1.5, legend=(label="Model", pos=:TR, box=:none,), 
-dpi=700, name="./case_study_1_present_day_validation/plots/all_SLA_relationship.png")
+GMT.plot!(a_ll, SLA_model, linecolor=:black, lw=1.5, legend=(label="TREED", pos=:TR, box=:none,), 
+dpi=700, name="./case_study_1_present_day_validation/plots/all_SLA_relationship.png", show=true)
